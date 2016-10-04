@@ -47,7 +47,7 @@ IMAGE_TYPE_BIT_DEPTH = {
 
 def xorrr(data, key):
     """Xor the given data with the key"""
-    return map(lambda x: chr(ord(x) ^ key), data)
+    return ''.join(map(lambda x: chr(ord(x) ^ key), data))
 
 
 def parse_png(data, logger):
