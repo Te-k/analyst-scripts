@@ -35,7 +35,7 @@ if __name__ == "__main__":
     parser.add_argument('--write', '-w',  help='Copy the file with the right size')
     args = parser.parse_args()
 
-    fin = open(sys.argv[1], 'rb')
+    fin = open(args.FILE, 'rb')
     data = fin.read()
     fin.close()
     pe = pefile.PE(data=data)
