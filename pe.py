@@ -4,6 +4,7 @@ import pefile
 import argparse
 import sys
 import hashlib
+import datetime
 
 """Display infos about a PE file
 Author : Tek <tek@randhome.io>
@@ -17,6 +18,12 @@ def display_hashes(data):
         m = getattr(hashlib, algo)()
         m.update(data)
         print("%s\t%s" % (algo.upper(), m.hexdigest()))
+
+def display_headers(pe):
+    """Display header information"""
+    if pe.FILE_HEADER.IMAGE_FILE_DLL:
+        print "DLL File! "
+    print "Compile Time:", datetime.datetime.fromtimestamp(pe.FILE_HEADER.TimeDateStamp)
 
 
 def display_sections(pe):
@@ -81,6 +88,8 @@ if __name__ == "__main__":
         sys.exit(0)
 
     display_hashes(data)
+    print("")
+    display_headers(pe)
     print("")
     display_sections(pe)
     print("")
