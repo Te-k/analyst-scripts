@@ -84,8 +84,11 @@ if __name__ == "__main__":
 		new_attr.type = "ip-dst"
 	    else:
 		new_attr.type = attr.type
-	    if "Imported via" in str(attr.comment):
-		new_attr.comment = ""
+            try:
+                if "Imported via" in str(attr.comment):
+                    new_attr.comment = ""
+            except UnicodeEncodeError:
+		new_attr.comment = attr.comment
 	    else:
 		new_attr.comment = attr.comment
             new_attr.distribution = 5

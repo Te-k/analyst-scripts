@@ -67,7 +67,7 @@ if __name__ == "__main__":
     if args.list:
         # List events
         events = server.events.list(0)
-        for event in events:
+        for event in sorted(events, key=lambda x:x.id):
             print("%i : %s" % (event.id, event.info))
     else:
         if args.event is not None:
