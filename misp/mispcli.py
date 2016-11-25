@@ -39,9 +39,9 @@ if __name__ == "__main__":
     parser.add_argument('--event', '-e',  help='Event infos', type=int)
     parser.add_argument('--attr', '-a',  help='Search for this attribute')
     parser.add_argument('--type', '-t',  help='Search for attributes of this type')
-    parser.add_argument('--delete', help='Delete the given attribute', action='store_true')
     parser.add_argument('--no-ids', help='Disable IDS for these attributes', action='store_true')
     parser.add_argument('--to-ids', help='Enable IDS for these attributes', action='store_true')
+    parser.add_argument('--detection', help='Summarize IOCs for detection', action='store_true')
     parser.add_argument('-v', '--verbose', action='count', default=0)
     args = parser.parse_args()
 
@@ -69,73 +69,83 @@ if __name__ == "__main__":
         events = server.events.list(0)
         for event in sorted(events, key=lambda x:x.id):
             print("%i : %s" % (event.id, event.info))
-    else:
-        if args.event is not None:
-            event = server.events.get(args.event)
-            if args.attr is None and args.type is None:
+    elif args.event is not None:
+        event = server.events.get(args.event)
+        if args.attr is None and args.type is None and args.detection is None:
+            print("Event %i : %s" % (event.id, event.info))
+            print("Tags : %s" % ", ".join(map(lambda x:str(x.name), event.tags)))
+            print("%i Attributes including:" % len(event.attributes))
+            attrs = Counter(map(lambda x:x.type, event.attributes))
+            attrs_ids = Counter(map(lambda x:x.type, filter(lambda x:x.to_ids, event.attributes)))
+            for type in attrs:
+                print("\t- %i %s (%i for detection)" % (attrs[type], type, attrs_ids[type]))
+        else:
+            if args.type is not None:
+                # Display all attributes from this type
+                for attr in event.attributes:
+                    if attr.type == args.type:
+                        if args.to_ids:
+                            if attr.to_ids == 0:
+                                attr.to_ids = 1
+                                server.attributes.update(attr)
+                                print("Updated attr %s for IDS detection" % attr.value)
+                            else:
+                                print("Attr %s already for IDS detection" % attr.value)
+                        elif args.no_ids:
+                            if attr.to_ids == 1:
+                                attr.to_ids = 0
+                                server.attributes.update(attr)
+                                print("Updated attr %s not for IDS detection" % attr.value)
+                            else:
+                                print("Attr %s already not for IDS detection" % attr.value)
+                        else:
+                            print("%s\t%s\t%s\t%s\t%s" % (attr.category, attr.type, attr.value, attr.comment, attr.to_ids))
+            elif args.attr is not None:
+                # search by attribute value
+                for attr in event.attributes:
+                    if args.attr in str(attr.value):
+                        if args.to_ids:
+                            if attr.to_ids == 0:
+                                attr.to_ids = 1
+                                server.attributes.update(attr)
+                                print("Updated attr %s for IDS detection" % attr.value)
+                            else:
+                                print("Attr %s already for IDS detection" % attr.value)
+                        elif args.no_ids:
+                            if attr.to_ids == 1:
+                                attr.to_ids = 0
+                                server.attributes.update(attr)
+                                print("Updated attr %s not for IDS detection" % attr.value)
+                            else:
+                                print("Attr %s already not for IDS detection" % attr.value)
+                        else:
+                            print("%s\t%s\t%s\t%s\t%s" %
+                                    (
+                                        attr.category,
+                                        attr.type,
+                                        attr.value,
+                                        attr.comment,
+                                        attr.to_ids
+                                    )
+                            )
+            else:
+                # misp -e 42 --detection : give info on IOCs for detection
                 print("Event %i : %s" % (event.id, event.info))
-                print("Tags : %s" % ", ".join(map(lambda x:str(x.name), event.tags)))
+                tags = map(lambda x:str(x.name), event.tags)
+                print("Tags : %s" % ", ".join(tags))
+                if "DETECT" in tags:
+                    print("Event enabled for detection")
+                else:
+                    print("Event not enabled for detection")
                 print("%i Attributes including:" % len(event.attributes))
                 attrs = Counter(map(lambda x:x.type, event.attributes))
                 attrs_ids = Counter(map(lambda x:x.type, filter(lambda x:x.to_ids, event.attributes)))
                 for type in attrs:
-                    print("\t- %i %s (%i for detection)" % (attrs[type], type, attrs_ids[type]))
-            else:
-                if args.type is not None:
-                    # Display all attributes from this type
-                    for attr in event.attributes:
-                        if attr.type == args.type:
-                            if args.delete:
-                                print("Not implemented, quitting")
-                                sys.exit(1)
-                            elif args.to_ids:
-                                if attr.to_ids == 0:
-                                    attr.to_ids = 1
-                                    server.attributes.update(attr)
-                                    print("Updated attr %s for IDS detection" % attr.value)
-                                else:
-                                    print("Attr %s already for IDS detection" % attr.value)
-                            elif args.no_ids:
-                                if attr.to_ids == 1:
-                                    attr.to_ids = 0
-                                    server.attributes.update(attr)
-                                    print("Updated attr %s not for IDS detection" % attr.value)
-                                else:
-                                    print("Attr %s already not for IDS detection" % attr.value)
-                            else:
-                                print("%s\t%s\t%s\t%s\t%s" % (attr.category, attr.type, attr.value, attr.comment, attr.to_ids))
-                else:
-                    # search by attribute value
-                    for attr in event.attributes:
-                        if args.attr in str(attr.value):
-                            if args.delete:
-                                print("Not implemented, quitting")
-                                sys.exit(1)
-                            elif args.to_ids:
-                                if attr.to_ids == 0:
-                                    attr.to_ids = 1
-                                    server.attributes.update(attr)
-                                    print("Updated attr %s for IDS detection" % attr.value)
-                                else:
-                                    print("Attr %s already for IDS detection" % attr.value)
-                            elif args.no_ids:
-                                if attr.to_ids == 1:
-                                    attr.to_ids = 0
-                                    server.attributes.update(attr)
-                                    print("Updated attr %s not for IDS detection" % attr.value)
-                                else:
-                                    print("Attr %s already not for IDS detection" % attr.value)
-                            else:
-                                print("%s\t%s\t%s\t%s\t%s" %
-                                        (
-                                            attr.category,
-                                            attr.type,
-                                            attr.value,
-                                            attr.comment,
-                                            attr.to_ids
-                                        )
-                                )
-        elif args.attr is not None:
+                    print("\t- %i %s for detection (%i total)" % (attrs_ids[type], type, attrs[type]))
+
+                print("Total: %s attributes for detection" % sum(attrs_ids.values()))
+
+    elif args.attr is not None:
             # Search attributes
             res = server.attributes.search(attr=args.attr)
             if len(res) == 0:
@@ -144,3 +154,28 @@ if __name__ == "__main__":
                 print("Attribute found in events:")
                 for event in res:
                     print("%i : %s" % (event.id, event.info))
+
+    elif args.detection:
+        iocs = []
+        events = server.events.list(0)
+        for f_event in events:
+            event = server.events.get(f_event.id)
+            tags = map(lambda x:str(x.name), event.tags)
+            if "DETECT" in tags:
+                attrs_ids = filter(lambda x:x.to_ids, event.attributes)
+                iocs += attrs_ids
+                print("%i - %s : %i attributes for detection (%i total)" % (
+                    event.id,
+                    event.info,
+                    len(attrs_ids),
+                    len(event.attributes)
+                    )
+                )
+
+        print("")
+        print("%i IOCs for detection including:" % len(iocs))
+        count = Counter(map(lambda x:x.type, iocs))
+        for type in count:
+            print("\t- %i %s indicator" % (count[type], type))
+
+
