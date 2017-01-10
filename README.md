@@ -7,3 +7,4 @@ Scripts for analyzing stuff:
 * checkpesize.py : check a PE file size
 * pe.py : display basic infos about a PE file (sections, imports...)
 * scrdec18.c : An old code still useful to decode .jse files (MS Jscript encoded), by MrBrownStone ([website archive](https://web.archive.org/web/20131208110057/http://virtualconspiracy.com/content/articles/breaking-screnc), [source code](https://gist.github.com/bcse/1834878))
+* misp : some scripts for using MISP servers
