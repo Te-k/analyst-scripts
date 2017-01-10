@@ -11,12 +11,13 @@ Date : 5/10/2016
 """
 
 
-def display_hashes(data):
+def display_hashes(data, pe):
     """Display md5, sha1 and sh256 of the data given"""
     for algo in ["md5", "sha1", "sha256"]:
         m = getattr(hashlib, algo)()
         m.update(data)
         print("%s\t%s" % (algo.upper(), m.hexdigest()))
+    print("Imphash: %s" % pe.get_imphash())
 
 
 def display_sections(pe):
@@ -80,7 +81,7 @@ if __name__ == "__main__":
         print(pe.dump_info())
         sys.exit(0)
 
-    display_hashes(data)
+    display_hashes(data, pe)
     print("")
     display_sections(pe)
     print("")
