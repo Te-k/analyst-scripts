@@ -71,7 +71,7 @@ if __name__ == "__main__":
             print("%i : %s" % (event.id, event.info))
     elif args.event is not None:
         event = server.events.get(args.event)
-        if args.attr is None and args.type is None and args.detection is None:
+        if args.attr is None and args.type is None and args.detection is False:
             print("Event %i : %s" % (event.id, event.info))
             print("Tags : %s" % ", ".join(map(lambda x:str(x.name), event.tags)))
             print("%i Attributes including:" % len(event.attributes))

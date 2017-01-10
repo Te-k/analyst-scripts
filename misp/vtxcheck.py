@@ -46,7 +46,6 @@ if __name__ == "__main__":
     parser.add_argument('--server', '-s',  help='Server used for the request')
     parser.add_argument('--event', '-e',  help='Event infos', type=int)
     parser.add_argument('-v', '--verbose', action='count', default=0)
-    parser.add_argument('-l', '--link', action='store_true', help='Create an attribute for the VirusTotal link')
     args = parser.parse_args()
 
     config = parse_config()
@@ -96,7 +95,7 @@ if __name__ == "__main__":
                         new_attr.category = attr.category
                         new_attr.to_ids = attr.to_ids
                         new_attr.type = h
-                        new_attr.comment = "XChecked via %s" % attr.value
+                        new_attr.comment = attr.comment + " - XChecked via %s" % attr.value
                         new_attr.distribution = attr.distribution
                         event.attributes.add(new_attr)
                         server.events.update(event)
