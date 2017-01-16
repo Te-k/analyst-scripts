@@ -68,21 +68,20 @@ if __name__ == '__main__':
             done = (status['status'] == 'success')
             if args.verbose and not done:
                 print("Request still pending, waiting")
-        result = cc.get_results(job_id, page=1)
-        if args.verbose:
-            print(result)
-        sdata = {}
         try:
+            result = cc.get_results(job_id, page=1)
+            if args.verbose:
+                print(result)
+            sdata = {}
             for i in range(len(PARAMS)):
                 sdata[PARAMS[i]] = result['rows'][0]['f'][i]['v']
             data[serie] = sdata
             if args.verbose:
                 print(sdata)
-        except IndexError:
+        except IndexError, ValueError:
             # Weird results, don't know why
             if args.verbose:
                 print("Results in bad format, skipping these from the dump")
-            pass
 
     fout = open("a.out", "w")
     fout.write(json.dumps(data))

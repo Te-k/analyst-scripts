@@ -7,10 +7,6 @@ import json
 from censyslib import *
 
 
-def get_ipv4records(censys):
-    series = c.get_series_details("ipv4")
-    return series["tables"]
-
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Request censys IPv4 database')
     parser.add_argument('--search', '-s', help='Search term in Censys database')
