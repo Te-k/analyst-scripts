@@ -1,36 +1,16 @@
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 import argparse
-import os
 import sys
 import ConfigParser
 from collections import Counter
 from misp import MispServer, MispEvent
+from misplib import parse_config
 
 """Command line interface for misp servers
 Author : Tek <tek@randhome.io>
 Date : 21/11/2016
 """
-
-def parse_config():
-    """Parse configuration file, returns a list of servers"""
-    config = ConfigParser.ConfigParser()
-    config.read(os.path.join(os.path.expanduser("~"), ".misp"))
-    servers = {}
-    for s in config.sections():
-        try:
-            info = {
-                    'url': config.get(s, 'url'),
-                    'key': config.get(s, 'key')
-            }
-            servers[s.lower()] = info
-            if config.get(s, 'default').lower() == 'true':
-                servers['default'] = info
-        except ConfigParser.NoOptionError:
-            pass
-
-    return servers
-
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Command line interface to MISP servers')
@@ -177,5 +157,8 @@ if __name__ == "__main__":
         count = Counter(map(lambda x:x.type, iocs))
         for type in count:
             print("\t- %i %s indicator" % (count[type], type))
+    else:
+        print("Invalid params!")
+        parser.print_help()
 
 
