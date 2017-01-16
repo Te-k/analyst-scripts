@@ -2,9 +2,14 @@
 
 Scripts for using MISP
 
-* misp.py : copy of [Nicolas Bareil python-misp library](https://github.com/nbareil/python-misp)
 * mispcli.py : Command line interface for MISP
 * mispcopy.py : script to copy attributes from one event to another
+* vtxcheck.py : search for hashes in VT and upload other hashes in MISP event
+* xsearch_misp.py : Search all IOCs from an event in another MISP instance (hint: if you use this on the same server it is useless)
+
+libs:
+* misp.py : copy of [Nicolas Bareil python-misp library](https://github.com/nbareil/python-misp)
+* misplib.py : shared code between the tools
 
 ## Configuration
 
