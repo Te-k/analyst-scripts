@@ -8,7 +8,7 @@ from misplib import parse_config
 
 """Checking yara rules from
 Author : Tek <tek@randhome.io>
-Date : 21/11/2016
+Date : 17/01/2017
 Require yara python library, see https://github.com/VirusTotal/yara-python
 """
 
