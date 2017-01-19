@@ -24,7 +24,7 @@ def get_vt_key():
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='Command line interface to MISP servers')
+    parser = argparse.ArgumentParser(description='Check MISP hashs in VT')
     parser.add_argument('--server', '-s',  help='Server used for the request')
     parser.add_argument('--event', '-e',  help='Event infos', type=int)
     parser.add_argument('-v', '--verbose', action='count', default=0)

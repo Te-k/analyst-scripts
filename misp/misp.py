@@ -441,7 +441,12 @@ class MispEvent(MispBaseObject):
         return MispEvent.from_xml_object(event)
 
     @staticmethod
-    def from_xml_object(obj):
+    def from_xml_object(obj, server=None):
+        """
+        Convert MISP XML event to MispEvent object
+        :param obj: LXML object
+        :param server: MispServer instance (optionnal)
+        """
         if obj.tag.lower() != 'event':
             raise ValueError('Invalid Event XML')
 
@@ -451,10 +456,13 @@ class MispEvent(MispBaseObject):
                       'timestamp', 'distribution', 'publish_timestamp', 'id']:
             val = getattr(obj, field)
             setattr(event, field, val)
+
+        # FIXME: large except catching lot of bugs
         try:
             attributes = []
             for attr in obj.Attribute:
                 attr_obj = MispAttribute.from_xml_object(attr)
+                attr_obj.server = server
                 attributes.append(attr_obj)
             event.attributes.set(attributes)
         except:
@@ -786,7 +794,7 @@ class MispServer(object):
             """
             raw_evt = self.server.GET('/events/%d' % evtid)
             response = objectify.fromstring(raw_evt)
-            return MispEvent.from_xml_object(response.Event)
+            return MispEvent.from_xml_object(response.Event, self.server)
 
         def update(self, event):
             """Modifies an event and propagate a change to the MISP server.
@@ -840,7 +848,7 @@ class MispServer(object):
             response = objectify.fromstring(raw)
             events = []
             for evtobj in response.Event:
-                events.append(MispEvent.from_xml_object(evtobj))
+                events.append(MispEvent.from_xml_object(evtobj, self.server))
             return events
 
         def search(self, attr_type=None, tags=None, value=None,
@@ -892,7 +900,7 @@ class MispServer(object):
             response = objectify.fromstring(raw)
             events = []
             for evtobj in response.Event:
-                events.append(MispEvent.from_xml_object(evtobj))
+                events.append(MispEvent.from_xml_object(evtobj, self.server))
             return events
 
 
@@ -935,6 +943,7 @@ class MispAttribute(MispBaseObject):
         self._ShadowAttribute = None
         self._id = None
         self._event_id = None
+        self._server = None
 
     @property
     def id(self):
@@ -966,13 +975,10 @@ class MispAttribute(MispBaseObject):
 
     @value.setter
     def value(self, value):
-        """The value of the IOC.
-
-        .. todo::
-           Note that no check is performed on the format of this value, we delegate this
-           verification to the MISP server.
         """
-        self._value = value
+        The value of the IOC (String)
+        """
+        self._value = str(value)
 
     @property
     def category(self):
@@ -1009,8 +1015,29 @@ class MispAttribute(MispBaseObject):
         self._to_ids = int(value)
 
     @property
+    def server(self):
+        return self._server
+
+    @to_ids.setter
+    def server(self, value):
+        self._server = value
+
+    @property
     def ShadowAttribute(self):
         return None
+
+    def download(self):
+        """
+        If a server is defined and the attribute is a malware-sample,
+        download the file
+        """
+        if self._type not in ['malware-sample', 'attachment']:
+            raise ValueError('Only malware-sample and attachment can be downloaded')
+
+        if self._server is None:
+            raise ValueError('Only attributes with a server can be downloaded')
+
+        return self._server.GET('/attributes/downloadAttachment/download/%i' % self._id)
 
     @staticmethod
     def from_xml(s):
