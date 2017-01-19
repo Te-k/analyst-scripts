@@ -1,7 +1,9 @@
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 import argparse
+import os
 import sys
+import ConfigParser
 from collections import Counter
 from misp import MispServer, MispEvent, MispAttribute
 from misplib import parse_config
