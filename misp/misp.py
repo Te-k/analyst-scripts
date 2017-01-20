@@ -978,7 +978,7 @@ class MispAttribute(MispBaseObject):
         """
         The value of the IOC (String)
         """
-        self._value = str(value)
+        self._value = value
 
     @property
     def category(self):
