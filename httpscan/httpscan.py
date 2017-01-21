@@ -32,7 +32,12 @@ class Scanner(object):
         if not server.startswith("http://"):
             server = "http://" + server
         try:
-            res = requests.get(urljoin(server, path), headers=headers, timeout=0.5)
+            res = requests.get(
+                    urljoin(server, path),
+                    headers=headers,
+                    timeout=0.5,
+                    verify=False
+                    )
         except requests.exceptions.ConnectionError:
             return False, None, "%s -> Connection Error" % server
         except requests.exceptions.ReadTimeout:
@@ -57,19 +62,25 @@ class Scanner(object):
         Temp function, san one page and prin results
         """
         for server in self.targets:
-                success, res, error = self._request(server, path)
-                if success:
-                    print("%s -> %i" % (server, res.status_code))
-                else:
-                    print(error)
+            success, res, error = self._request(server, path)
+            if success:
+                print("%s -> %i" % (server, res.status_code))
+            else:
+                print(error)
 
-    def default_scan_host(self, target):
+    def default_scan_host(self, target, tls=False):
         """
         Scan one host with default scan
         """
+        if tls:
+            if "http://" in target:
+                target = target.replace("http", "https")
         success, res, error = self._request(target, "/")
         if success:
-            print("\t/ %i %s" % (res.status_code, res.reason))
+            if tls:
+                print("\tHTTPs / %i %s" % (res.status_code, res.reason))
+            else:
+                print("\tHTTP / %i %s" % (res.status_code, res.reason))
             # Check headers
             if self.verbose > 1:
                 print("\tHeaders:")
@@ -83,10 +94,10 @@ class Scanner(object):
                         print("\t\t-%s: %s" % (i, headers[i]))
             # Check content of the page
             # TODO
-            return True
+            return success, res
         else:
             print("\tRequest on /: %s" % error)
-            return False
+            return success, res
 
     def check_files(self, target, path="/", phishing=False):
         """
@@ -105,7 +116,9 @@ class Scanner(object):
         """
         for server in self.targets:
             print("Scanning: %s" % server)
-            self.default_scan_host(server)
+            success, res = self.default_scan_host(server)
+            success, res = self.default_scan_host(server, tls=True)
+
 
     def phishing_scan(self, path):
         """
@@ -113,8 +126,8 @@ class Scanner(object):
         """
         for server in self.targets:
             print("Scanning: %s" % server)
-            res = self.default_scan_host(server)
-            if res:
+            success, res = self.default_scan_host(server)
+            if success:
                 # Check interesting files
                 self.check_files(server, path, phishing=True)
 
