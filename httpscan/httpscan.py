@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 import requests
 import argparse
+import socket, ssl
+import sys
 from urlparse import urljoin
 
 
@@ -68,6 +70,25 @@ class Scanner(object):
             else:
                 print(error)
 
+    def check_certificate(self, domain):
+        """
+        Download and get information from the TLS certificate
+        """
+        context = ssl.create_default_context()
+        context.check_hostname = False
+        conn = context.wrap_socket(socket.socket(socket.AF_INET), server_hostname=domain)
+        conn.connect((domain, 443))
+        cert = conn.getpeercert()
+        conn.close()
+        print("\tCertificate:")
+        print("\t\tCommon Name: %s" % cert['subject'][0][0][1])
+        print("\t\tAlt Name: %s" % cert['subjectAltName'][0][1])
+        print("\t\tNot After: %s" % cert['notAfter'])
+        print("\t\tNot Before: %s" % cert['notBefore'])
+        print("\t\tCA Issuer: %s" % cert['issuer'][1][0][1])
+        print("\t\tSerial: %s" % cert['serialNumber'])
+
+
     def default_scan_host(self, target, tls=False):
         """
         Scan one host with default scan
@@ -118,6 +139,7 @@ class Scanner(object):
             print("Scanning: %s" % server)
             success, res = self.default_scan_host(server)
             success, res = self.default_scan_host(server, tls=True)
+            self.check_certificate(server)
 
 
     def phishing_scan(self, path):
