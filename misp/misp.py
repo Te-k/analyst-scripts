@@ -441,12 +441,7 @@ class MispEvent(MispBaseObject):
         return MispEvent.from_xml_object(event)
 
     @staticmethod
-    def from_xml_object(obj, server=None):
-        """
-        Convert MISP XML event to MispEvent object
-        :param obj: LXML object
-        :param server: MispServer instance (optionnal)
-        """
+    def from_xml_object(obj):
         if obj.tag.lower() != 'event':
             raise ValueError('Invalid Event XML')
 
@@ -457,12 +452,11 @@ class MispEvent(MispBaseObject):
             val = getattr(obj, field)
             setattr(event, field, val)
 
-        # FIXME: large except catching lot of bugs
+        #FIXME: this except catch a lot of unknown bugs
         try:
             attributes = []
             for attr in obj.Attribute:
                 attr_obj = MispAttribute.from_xml_object(attr)
-                attr_obj.server = server
                 attributes.append(attr_obj)
             event.attributes.set(attributes)
         except:
@@ -579,6 +573,18 @@ class MispServer(object):
         if resp.status_code != 200:
             raise MispTransportError('GET %s: returned status=%d', path, resp.status_code)
         return resp.content
+
+    def download(self, attr):
+        """
+        Download an attribute attachment
+        (if type is malware-sample or attachment only)
+        :param attr: attribute (should be MispAttribute instance)
+        :returns: value of the attachment
+        """
+        if attr.type not in ['malware-sample', 'attachment']:
+            raise ValueError('Only malware-sample and attachment can be downloaded')
+
+        return self.GET('/attributes/downloadAttachment/download/%i' % attr.id)
 
     class ShadowAttributes(object):
         """
@@ -738,28 +744,32 @@ class MispServer(object):
             [MispEvent, MispEvent...]
 
             """
-            request = '<request>'
+            request = objectify.Element('request')
             if value:
-                request += '<value>%s</value>' % value
+                request.value = value
             if type:
-                request += '<type>%s</type>' % type
+                request.type = type
             if category:
-                request += '<category>%s</category>' % category
+                request.category = category
             if tag:
-                request += '<tag>%s</tag>' % tag
+                request.tag = tag
             if fromd:
-                request += '<from>%s</from>' % fromd
+                #Dirty trick to have a from tag
+                setattr(request, "from", fromd)
             if tod:
-                request += '<to>%s</to>' % tod
+                request.to = tod
             if last:
-                request += '<last>%s</last>' % last
+                request.last = last
 
-            request += '</request>'
+            lxml.objectify.deannotate(request, xsi_nil=True)
+            lxml.etree.cleanup_namespaces(request)
+            raw = lxml.etree.tostring(request)
+            print(raw)
 
             try:
                 raw = self.server.POST(
                         '/events/restSearch/download',
-                        request
+                        raw
                 )
             except MispTransportError as err:
                 if err[2] == 404:
@@ -794,7 +804,7 @@ class MispServer(object):
             """
             raw_evt = self.server.GET('/events/%d' % evtid)
             response = objectify.fromstring(raw_evt)
-            return MispEvent.from_xml_object(response.Event, self.server)
+            return MispEvent.from_xml_object(response.Event)
 
         def update(self, event):
             """Modifies an event and propagate a change to the MISP server.
@@ -848,7 +858,7 @@ class MispServer(object):
             response = objectify.fromstring(raw)
             events = []
             for evtobj in response.Event:
-                events.append(MispEvent.from_xml_object(evtobj, self.server))
+                events.append(MispEvent.from_xml_object(evtobj))
             return events
 
         def search(self, attr_type=None, tags=None, value=None,
@@ -900,7 +910,7 @@ class MispServer(object):
             response = objectify.fromstring(raw)
             events = []
             for evtobj in response.Event:
-                events.append(MispEvent.from_xml_object(evtobj, self.server))
+                events.append(MispEvent.from_xml_object(evtobj))
             return events
 
 
@@ -930,7 +940,7 @@ attr_types = ['md5', 'sha1', 'sha256', 'filename', 'pdb',
             'windows-service-displayname', 'whois-registrant-email',
             'whois-registrant-phone', 'whois-registrant-name', 'whois-registrar',
             'whois-creation-date', 'targeted-threat-index', 'mailslot', 'pipe',
-            'ssl-cert-attributes', 'x509-fingerprint-sha1']
+            'ssl-cert-attributes', 'x509-fingerprint-sha1', 'ip-dst|port']
 
 class MispAttribute(MispBaseObject):
     def __init__(self):
@@ -943,7 +953,6 @@ class MispAttribute(MispBaseObject):
         self._ShadowAttribute = None
         self._id = None
         self._event_id = None
-        self._server = None
 
     @property
     def id(self):
@@ -975,10 +984,13 @@ class MispAttribute(MispBaseObject):
 
     @value.setter
     def value(self, value):
+        """The value of the IOC.
+
+        .. todo::
+           Note that no check is performed on the format of this value, we delegate this
+           verification to the MISP server.
         """
-        The value of the IOC (String)
-        """
-        self._value = str(value)
+        self._value = value
 
     @property
     def category(self):
@@ -1015,29 +1027,8 @@ class MispAttribute(MispBaseObject):
         self._to_ids = int(value)
 
     @property
-    def server(self):
-        return self._server
-
-    @to_ids.setter
-    def server(self, value):
-        self._server = value
-
-    @property
     def ShadowAttribute(self):
         return None
-
-    def download(self):
-        """
-        If a server is defined and the attribute is a malware-sample,
-        download the file
-        """
-        if self._type not in ['malware-sample', 'attachment']:
-            raise ValueError('Only malware-sample and attachment can be downloaded')
-
-        if self._server is None:
-            raise ValueError('Only attributes with a server can be downloaded')
-
-        return self._server.GET('/attributes/downloadAttachment/download/%i' % self._id)
 
     @staticmethod
     def from_xml(s):
@@ -1137,7 +1128,6 @@ class MispShadowAttribute(MispAttribute):
                 val = getattr(obj, field)
                 setattr(shadowattribute, field, val)
             except AttributeError:
-                #print 'ShadowAttributes has no', field, 'field'
                 pass
         return shadowattribute
 

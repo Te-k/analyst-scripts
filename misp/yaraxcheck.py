@@ -12,17 +12,17 @@ Date : 17/01/2017
 Require yara python library, see https://github.com/VirusTotal/yara-python
 """
 
-def check_yara(rules, data, verbose):
+def check_yara(rules, data, name, verbose):
     res = rules.match(data=data)
     if len(res) > 0:
         print("%s: MATCH %s" % (
-                attr.value,
+                name,
                 ",".join(map(lambda x: x.rule, res))
             )
         )
     else:
         if verbose > 0:
-            print('%s: no match')
+            print('%s: no match' % name)
 
     return res
 
@@ -60,13 +60,18 @@ if __name__ == "__main__":
     for attr in event.attributes:
         if attr.type == 'malware-sample':
             # Ignore zip files
-            if "|" in attr.value:
-                fname = attr.value.split("|")[0]
+            value = str(attr.value)
+            if "|" in value:
+                fname = value.split("|")[0]
                 if not fname.endswith(".zip"):
-                    data = attr.download()
-                    check_yara(rules, data, args.verbose)
+                    data = server.download(attr)
+                    check_yara(rules, data, attr.value, args.verbose)
+                else:
+                    if args.verbose > 1:
+                        print("%s not considered (.zip file)" % (attr.value))
             else:
-                check_yara(rules, data, args.verbose)
+                data = server.download(attr)
+                check_yara(rules, data, attr.value, args.verbose)
         else:
             if args.verbose > 1:
                 print("%s not considered (type %s)" % (attr.value, attr.type))
