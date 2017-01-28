@@ -7,6 +7,8 @@ import sys
 import os
 import yaml
 import logging
+from cryptography import x509
+from cryptography.hazmat.backends import default_backend
 from urlparse import urljoin
 
 class Signature(object):
@@ -55,7 +57,7 @@ class Signature(object):
 
 
 class Scanner(object):
-    def __init__(self, targets, verbose=0):
+    def __init__(self, targets, verbose=0, output=None):
         self.targets = targets
         self.verbose = verbose
         self.ua = "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:40.0) Gecko/20100101 Firefox/40.1"
@@ -64,13 +66,26 @@ class Scanner(object):
                 "signatures"
             )
         self.signatures = None
-        self.log = logging
+        self.output = output
+        self.log = logger = logging.getLogger('httpscan')
+
         if verbose > 2:
-            self.log.basicConfig(format='%(message)s', level=logging.DEBUG)
+            self.logging_level = logging.DEBUG
         else:
-            self.log.basicConfig(format='%(message)s',
-                    level=[logging.WARNING, logging.INFO, logging.DEBUG][verbose]
-            )
+            self.logging_level=[logging.WARNING, logging.INFO, logging.DEBUG][verbose]
+
+        self.log.setLevel(self.logging_level)
+        ch = logging.StreamHandler()
+        ch.setLevel(self.logging_level)
+        ch.setFormatter(logging.Formatter('%(message)s'))
+        self.log.addHandler(ch)
+
+        if self.output:
+            fh = logging.FileHandler(os.path.join(self.output, 'scan.log'))
+            fh.setLevel(self.logging_level)
+            fh.setFormatter(logging.Formatter('%(asctime)s - %(message)s'))
+            self.log.addHandler(fh)
+
         self.interesting_files = [
                 '.git',
                 '.gitignore',
@@ -141,19 +156,25 @@ class Scanner(object):
         """
         Download and get information from the TLS certificate
         """
-        context = ssl.create_default_context()
-        context.check_hostname = False
-        conn = context.wrap_socket(socket.socket(socket.AF_INET), server_hostname=domain)
-        conn.connect((domain, 443))
-        cert = conn.getpeercert()
-        conn.close()
+        pem = ssl.get_server_certificate((domain, 443))
+        if self.output:
+            with open(os.path.join(self.output, 'cert.pem'), 'wb') as f:
+                f.write(pem)
+
+
+        cert = x509.load_pem_x509_certificate(str(pem), default_backend())
         self.log.critical("\tCertificate:")
-        self.log.critical("\t\tCommon Name: %s" % cert['subject'][0][0][1])
-        self.log.critical("\t\tAlt Name: %s" % cert['subjectAltName'][0][1])
-        self.log.critical("\t\tNot After: %s" % cert['notAfter'])
-        self.log.critical("\t\tNot Before: %s" % cert['notBefore'])
-        self.log.critical("\t\tCA Issuer: %s" % cert['issuer'][1][0][1])
-        self.log.critical("\t\tSerial: %s" % cert['serialNumber'])
+        self.log.critical("\t\tDomain: %s" % ",".join(map(lambda x:x.value, cert.subject)))
+        self.log.critical("\t\tNot After: %s" % str(cert.not_valid_after))
+        self.log.critical("\t\tNot Before: %s" % str(cert.not_valid_before))
+        self.log.critical("\t\tCA Issuer: %s" % ", ".join(map(lambda x:x.value, cert.issuer)))
+        self.log.critical("\t\tSerial: %s" % cert.serial_number)
+        for ext in cert.extensions:
+            if ext.oid._name == 'basicConstraints':
+                if ext.value.ca:
+                    self.log.critical("\t\tBasic Constraints: True")
+            elif ext.oid._name == 'subjectAltName':
+                self.log.critical("\t\tAlternate names: %s" % ", ".join(ext.value.get_values_for_type(x509.DNSName)))
 
 
     def default_scan_host(self, target, tls=False):
@@ -197,6 +218,10 @@ class Scanner(object):
             success, res, error = self._request(target, urljoin(path, f))
             if success and res.status_code != 404:
                 self.log.critical("\t\t %s found (%i)" % (f, res.status_code))
+            if success and res.status_code == 200 and self.output:
+                with open(os.path.join(self.output, f), 'a') as ff:
+                    ff.write(res.text)
+
 
     def default_scan(self):
         """
@@ -204,8 +229,17 @@ class Scanner(object):
         """
         for server in self.targets:
             self.log.critical("Scanning: %s" % server)
+
             success, res = self.default_scan_host(server)
+            if success and self.output:
+                with open(os.path.join(self.output, 'http_page.html'), 'a') as f:
+                    f.write(res.text)
+
             success, res = self.default_scan_host(server, tls=True)
+            if success and self.output:
+                with open(os.path.join(self.output, 'https_page.html'), 'a') as f:
+                    f.write(res.text)
+
             self.check_certificate(server)
 
 
@@ -259,6 +293,7 @@ if __name__ == '__main__':
     parser.add_argument('--phishing', '-P', help='Phishing Scan')
     parser.add_argument('--fingerprint', '-F', action='store_true', help='Phishing fingerprint')
     parser.add_argument('--signature', '-S', help='Test a specific Phishing signature')
+    parser.add_argument('--output', '-o', help='Store all information in an output directory')
     args = parser.parse_args()
 
     if args.server is not None:
@@ -273,7 +308,12 @@ if __name__ == '__main__':
         parser.print_help()
         sys.exit(0)
 
-    scanner = Scanner(target, args.verbose)
+    if args.output:
+        if not os.path.isdir(args.output):
+            print("Bad output option (it should be a directory), quitting")
+            sys.exit(1)
+
+    scanner = Scanner(target, args.verbose, output=args.output)
     if args.path:
         scanner.scan_page(args.path)
     elif args.phishing:
