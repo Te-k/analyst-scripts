@@ -214,14 +214,25 @@ class Scanner(object):
                 # Check interesting files
                 self.check_files(server, path, phishing=True)
 
-    def phishing_fingerprint(self):
-        if self.signatures is None:
-            self.load_signatures()
+    def phishing_fingerprint(self, signature=None):
+        if signature is None:
+            if self.signatures is None:
+                self.load_signatures()
+            signatures = self.signatures
+        else:
+            if os.path.exists(signature):
+                ffile = open(args.signature)
+                signatures = [ Signature(yaml.load(ffile), self)]
+                ffile.close()
+                pass
+            else:
+                print("Bad signature")
+                return False
 
         for target in self.targets:
             print("Fingerprinting %s" % target)
             found = False
-            for sig in self.signatures:
+            for sig in signatures:
                 res = sig.run(target)
                 if res:
                     print("\t-> match on %s" % sig.name)
@@ -241,6 +252,7 @@ if __name__ == '__main__':
     parser.add_argument('--path', '-p', help='Request a specific path')
     parser.add_argument('--phishing', '-P', help='Phishing Scan')
     parser.add_argument('--fingerprint', '-F', action='store_true', help='Phishing fingerprint')
+    parser.add_argument('--signature', '-S', help='Test a specific Phishing signature')
     args = parser.parse_args()
 
     if args.server is not None:
@@ -260,6 +272,8 @@ if __name__ == '__main__':
         scanner.scan_page(args.path)
     elif args.phishing:
         res = scanner.phishing_scan(args.phishing)
+    elif args.signature:
+        res = scanner.phishing_fingerprint(args.signature)
     elif args.fingerprint:
         res = scanner.phishing_fingerprint()
     else:
