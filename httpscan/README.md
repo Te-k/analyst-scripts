@@ -2,7 +2,40 @@
 
 ## HOWTO
 
-## Fingerprint notes
+## Phhshing kit fingerprint
+
+### Example
+
+```
+$ python httpscan.py -s example.com -F
+Fingerprinting example.com
+    -> match on examplesig
+```
+
+### Signature format
+
+Signature uses YAML format and are close to yara signature, tests and condition
+
+Example:
+```yaml
+---
+examplesig:
+    tests:
+        - name: index
+        path: index.html
+        code: 200
+        content: "<body>"
+    condition: all
+```
+
+Tests should contains name and path and at least one of the following criteria:
+* Code : HTTP return code
+* content : look for content
+
+Condition can be "any" or "all"
+
+
+## HTTP Fingerprint notes
 
 ### Header field ordering
 

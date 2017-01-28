@@ -4,8 +4,53 @@ import requests
 import argparse
 import socket, ssl
 import sys
+import os
+import yaml
 from urlparse import urljoin
 
+class Signature(object):
+    def __init__(self, data, scanner):
+        # TODO: implement a rule format checker
+        self.name = data.keys()[0]
+        self.tests = data[self.name]['tests']
+        self.condition = data[self.name]['condition']
+        self._scanner = scanner
+
+    def run_test(self, target, test):
+        """
+        Run one test on a target
+        :returns True/False
+        """
+        success, res, error = self._scanner._request(target, test['path'])
+        if success:
+            match = False
+            if 'content' in test.keys():
+                if test['content'] not in res.text:
+                    return False
+            if 'code' in test.keys():
+                if res.status_code != test['code']:
+                    return False
+            return True
+        else:
+            return False
+
+    def run(self, target):
+        """
+        Run the tests on the target and return True / False
+        """
+        if self.condition == 'all':
+            for test in self.tests:
+                res = self.run_test(target, test)
+                if not res:
+                    return False
+            return True
+        else:
+            # condition any
+            for test in self.tests:
+                res = self.run_test(target, test)
+                if res:
+                    return True
+            return False
 
 
 class Scanner(object):
@@ -13,8 +58,14 @@ class Scanner(object):
         self.targets = targets
         self.verbose = verbose
         self.ua = "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:40.0) Gecko/20100101 Firefox/40.1"
+        self.sigdir = os.path.join(
+                os.path.dirname(os.path.realpath(__file__)),
+                "signatures"
+            )
+        self.signatures = None
         self.interesting_files = [
                 '.git',
+                '.gitignore',
                 '.svn',
                 '.htaccess',
                 '.log',
@@ -23,11 +74,21 @@ class Scanner(object):
                 'logs',
                 'logs.txt',
                 'index.html',
-                '.well-known'
+                '.well-known',
+                '/static/'
         ]
 
         # list gathered from https://github.com/0xd34db33f/scriptsaw/blob/master/ruby/phish_kit_finder.rb
         self.phishing_kits = ['dropbox.zip','sparskss.zip','dpbx.zip','wells3x.zip','secureLogin_3.zip','administrator.zip','ipaad.zip','msn.zip','wellsfargo.zip','bookmark.zip','Dropbox.zip','www.zip','hotmail.zip','update.zip','xnowxoffnowxnowoffhd.zip','global.zip','docx.zip','support-Verification.zip','estatspark.zip','login.zip','ipad.zip','scampage.zip','s.p.zip','Arch.zip','filez.zip','irs.zip','gdoc.zip','phone.zip','nD.zip','db.zip','adobe.zip','FOX.zip','usaa.zip','GD.zip','itunes.appel.com.zip','DROPBOX%20MEN..zip','BDB.zip','yahoo.zip','update_info-paypal-tema-login-update_info-paypal-tema-login-update_info-paypal-tema-loginhome.zip','outlook.zip','icscards:nl.zip','googledocs.zip','alibaba.zip','www.kantonalbank.ch.zip','wes.zip','google.zip','Zone1.zip','BDBB.zip','Aol-Login.zip','live.com.zip','gmail.zip','drpbx%20-%20Copy.zip','Google.zip','GD1.zip','BiyiBlaze.zip','BDBBB4.zip','Aolnew.zip','wells.zip','web.zip','validation.zip','usaa_com.zip','servelet_usaa.zip','order.zip','home.zip','document.zip','chase.zip','app.zip','BOBI.zip','maxe.zip','max.zip','googledrive.zip','googledoc.zip','general.zip','filedrop.zip','dr.zip','doc.zip','access.zip','Yahoo.zip','Yahoo-2014.zip','DropBoxDocument.zip','www.hypovereinsbank.de.zip','www.citibank.com.my.zip','undoo.zip','tesco.zip','spass.zip','outlook%20True..zip','myposte.zip','hvsf.zip','gmez.zip','global2.zip','dpp.zip','Usaa.zip','R-viewdoc.zip','Pamilerinayooluwa.zip','Ourtime.zip','Hotmail-New.zip','DHL.zip','Adobe.zip','wp-admin.zip','westpac.zip','wellsfargo.com.zip','welcome.zip','suite.zip','spaskas.zip','signontax.zip','share.zip','script1.zip','santander.zip','rr.zip','online.zip','new.zip','new%20google%20doc..zip','dropboxLanre.zip','drive.zip','docs.zip','db2.zip','christain_mingle.zip','aol.zip','Investor.zip','G6.zip','BILLIONS%20PAGE..zip','yahoo.com.zip','ww.zip','ups.zip','outlooknew.zip','finance.zip','files.zip','dropbox1..zip','dropbox%20LoginVerification%20-prntscr.com-9sjlf0.zip','dhl.zip','db2016.zip','css.zip','commbankonlineau.zip','box.zip','bof.zip','bbooffaa.zip','auth.inet.ent_Logon-redirectjsp.true.zip','art.zip','admin.zip','accounts.zip','LIFEVERIFY.zip','IRS.zip','GOG.zip','Dropbox1..zip','Doc.zip','DROPBOX','Business.zip','8-login-form.zip','1.zip','wllxzccc.zip','webmail.zip','vivt.zip','validate.zip','spar.zip','royalbank.zip','review.zip','rebuilt.gdoc.zip','obiora.zip','news.zip','match2.zip','maildoc.zip','google%20dariver%202015.zip','good.zip','gee.zip','dropelv.%20-%20Copy.zip','dropbox2016.zip','dropbl.zip','dpx.zip','dm.zip','db2011.zip','class.zip','ch.zip','capitalone360.zip','apple.zip','aoljunior.zip','PDP..zip','Nuvo.zip','Newdropbox15-1.zip','Gouv_lmpouts.zip','Gmail.zip','Gdoc.zip','Fresh.zip','Ed.zip','DROPBOX.zip','3.0.zip','gdocs.zip','gdocs1.zip','GD.zip','art3..zip']
+
+    def load_signatures(self):
+        self.signatures = []
+        for f in os.listdir(self.sigdir):
+            ffile = open(os.path.join(self.sigdir, f))
+            self.signatures.append(Signature(yaml.load(ffile), self))
+            ffile.close()
+
+
 
     def _request(self, server, path):
         headers = {'user-agent': self.ua}
@@ -153,6 +214,22 @@ class Scanner(object):
                 # Check interesting files
                 self.check_files(server, path, phishing=True)
 
+    def phishing_fingerprint(self):
+        if self.signatures is None:
+            self.load_signatures()
+
+        for target in self.targets:
+            print("Fingerprinting %s" % target)
+            found = False
+            for sig in self.signatures:
+                res = sig.run(target)
+                if res:
+                    print("\t-> match on %s" % sig.name)
+                    found = True
+            if not found:
+                print("\nNo match")
+
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Scan HTTP server check for a file')
@@ -163,6 +240,7 @@ if __name__ == '__main__':
     parser.add_argument('--default', '-d', action='store_true', help='Default scan')
     parser.add_argument('--path', '-p', help='Request a specific path')
     parser.add_argument('--phishing', '-P', help='Phishing Scan')
+    parser.add_argument('--fingerprint', '-F', action='store_true', help='Phishing fingerprint')
     args = parser.parse_args()
 
     if args.server is not None:
@@ -182,5 +260,7 @@ if __name__ == '__main__':
         scanner.scan_page(args.path)
     elif args.phishing:
         res = scanner.phishing_scan(args.phishing)
+    elif args.fingerprint:
+        res = scanner.phishing_fingerprint()
     else:
         res = scanner.default_scan()
