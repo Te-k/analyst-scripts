@@ -2,7 +2,7 @@
 
 ## HOWTO
 
-## Phhshing kit fingerprint
+## Phishing kit fingerprint
 
 ### Example
 

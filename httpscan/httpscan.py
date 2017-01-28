@@ -6,6 +6,7 @@ import socket, ssl
 import sys
 import os
 import yaml
+import logging
 from urlparse import urljoin
 
 class Signature(object):
@@ -63,6 +64,13 @@ class Scanner(object):
                 "signatures"
             )
         self.signatures = None
+        self.log = logging
+        if verbose > 2:
+            self.log.basicConfig(format='%(message)s', level=logging.DEBUG)
+        else:
+            self.log.basicConfig(format='%(message)s',
+                    level=[logging.WARNING, logging.INFO, logging.DEBUG][verbose]
+            )
         self.interesting_files = [
                 '.git',
                 '.gitignore',
@@ -87,8 +95,6 @@ class Scanner(object):
             ffile = open(os.path.join(self.sigdir, f))
             self.signatures.append(Signature(yaml.load(ffile), self))
             ffile.close()
-
-
 
     def _request(self, server, path):
         headers = {'user-agent': self.ua}
@@ -127,9 +133,9 @@ class Scanner(object):
         for server in self.targets:
             success, res, error = self._request(server, path)
             if success:
-                print("%s -> %i" % (server, res.status_code))
+                self.log.critical("%s -> %i" % (server, res.status_code))
             else:
-                print(error)
+                self.log.critical(error)
 
     def check_certificate(self, domain):
         """
@@ -141,13 +147,13 @@ class Scanner(object):
         conn.connect((domain, 443))
         cert = conn.getpeercert()
         conn.close()
-        print("\tCertificate:")
-        print("\t\tCommon Name: %s" % cert['subject'][0][0][1])
-        print("\t\tAlt Name: %s" % cert['subjectAltName'][0][1])
-        print("\t\tNot After: %s" % cert['notAfter'])
-        print("\t\tNot Before: %s" % cert['notBefore'])
-        print("\t\tCA Issuer: %s" % cert['issuer'][1][0][1])
-        print("\t\tSerial: %s" % cert['serialNumber'])
+        self.log.critical("\tCertificate:")
+        self.log.critical("\t\tCommon Name: %s" % cert['subject'][0][0][1])
+        self.log.critical("\t\tAlt Name: %s" % cert['subjectAltName'][0][1])
+        self.log.critical("\t\tNot After: %s" % cert['notAfter'])
+        self.log.critical("\t\tNot Before: %s" % cert['notBefore'])
+        self.log.critical("\t\tCA Issuer: %s" % cert['issuer'][1][0][1])
+        self.log.critical("\t\tSerial: %s" % cert['serialNumber'])
 
 
     def default_scan_host(self, target, tls=False):
@@ -160,44 +166,44 @@ class Scanner(object):
         success, res, error = self._request(target, "/")
         if success:
             if tls:
-                print("\tHTTPs / %i %s" % (res.status_code, res.reason))
+                self.log.critical("\tHTTPs / %i %s" % (res.status_code, res.reason))
             else:
-                print("\tHTTP / %i %s" % (res.status_code, res.reason))
+                self.log.critical("\tHTTP / %i %s" % (res.status_code, res.reason))
             # Check headers
             if self.verbose > 1:
-                print("\tHeaders:")
+                self.log.critical("\tHeaders:")
                 for h in res.headers:
-                    print("\t\t%s: %s" % (h, res.headers[h]))
+                    self.log.critical("\t\t%s: %s" % (h, res.headers[h]))
             else:
                 headers = self.analyse_headers(res.headers)
                 if len(headers) > 0:
-                    print("\tInteresting headers:")
+                    self.log.critical("\tInteresting headers:")
                     for i in headers:
-                        print("\t\t-%s: %s" % (i, headers[i]))
+                        self.log.critical("\t\t-%s: %s" % (i, headers[i]))
             # Check content of the page
             # TODO
             return success, res
         else:
-            print("\tRequest on /: %s" % error)
+            self.log.critical("\tRequest on /: %s" % error)
             return success, res
 
     def check_files(self, target, path="/", phishing=False):
         """
         Look for interesting files on the server
         """
-        print("\tTesting interesting files")
+        self.log.critical("\tTesting interesting files")
 
         for f in self.interesting_files:
             success, res, error = self._request(target, urljoin(path, f))
             if success and res.status_code != 404:
-                print("\t\t %s found (%i)" % (f, res.status_code))
+                self.log.critical("\t\t %s found (%i)" % (f, res.status_code))
 
     def default_scan(self):
         """
         Default scan includes request on / and gathering of information
         """
         for server in self.targets:
-            print("Scanning: %s" % server)
+            self.log.critical("Scanning: %s" % server)
             success, res = self.default_scan_host(server)
             success, res = self.default_scan_host(server, tls=True)
             self.check_certificate(server)
@@ -208,7 +214,7 @@ class Scanner(object):
         Phishing scan : default scan + check phishing kits
         """
         for server in self.targets:
-            print("Scanning: %s" % server)
+            self.log.critical("Scanning: %s" % server)
             success, res = self.default_scan_host(server)
             if success:
                 # Check interesting files
@@ -226,19 +232,19 @@ class Scanner(object):
                 ffile.close()
                 pass
             else:
-                print("Bad signature")
+                self.log.critical("Bad signature")
                 return False
 
         for target in self.targets:
-            print("Fingerprinting %s" % target)
+            self.log.error("Fingerprinting %s" % target)
             found = False
             for sig in signatures:
                 res = sig.run(target)
                 if res:
-                    print("\t-> match on %s" % sig.name)
+                    self.log.error("\t-> match on %s" % sig.name)
                     found = True
             if not found:
-                print("\nNo match")
+                self.log.error("\nNo match")
 
 
 
