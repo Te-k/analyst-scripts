@@ -8,6 +8,7 @@ import logging
 from urlparse import urljoin
 from cryptography import x509
 from cryptography.hazmat.backends import default_backend
+from bs4 import BeautifulSoup
 import yaml
 import requests
 
@@ -147,7 +148,7 @@ class Scanner(object):
             if header in headers:
                 infos[header] = headers[header]
         return infos
-
+sl
     def scan_page(self, path):
         """
         Temp function, san one page and prin results
@@ -209,7 +210,10 @@ class Scanner(object):
                     for i in headers:
                         self.log.critical("\t\t-%s: %s", i, headers[i])
             # Check content of the page
-            # TODO
+            self.log.critical("\tContent:")
+            soup = BeautifulSoup(res.text, "lxml")
+            if len(soup.title.contents) >0:
+                self.log.critical("\t\t-Title: %s", soup.title.contents[0])
             return success, res
         else:
             self.log.critical("\tRequest on /: %s", error)

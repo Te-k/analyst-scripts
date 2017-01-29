@@ -1,3 +1,5 @@
 requests
 PyYAML
 cryptography
+beautifoulsoup4
+lxml
