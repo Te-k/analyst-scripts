@@ -35,6 +35,12 @@ import lxml
 from lxml import objectify
 import requests
 
+# Fix Python 3.x.
+try:
+    UNICODE_EXISTS = bool(type(unicode))
+except NameError:
+    unicode = lambda s: str(s)
+
 TEST_NEEDLE = '68b329da9893e34099c7d8ad5cb9c940'
 TEST_EVT_ID = 540
 TEST_ATTR_ID = 87516
@@ -316,7 +322,7 @@ class MispEvent(MispBaseObject):
         self.shadowattributes = []
 
     def __repr__(self):
-        return "'%i: %s'" % (self._id, self._info)
+        return "'%i: %s'" % (self._id or '-', self._info or '-')
 
     @property
     def attribute_count(self):
@@ -754,8 +760,7 @@ class MispServer(object):
             if tag:
                 request.tag = tag
             if fromd:
-                #Dirty trick to have a from tag
-                setattr(request, "from", fromd)
+                setattr(request, 'from', fromd)
             if tod:
                 request.to = tod
             if last:
@@ -764,7 +769,6 @@ class MispServer(object):
             lxml.objectify.deannotate(request, xsi_nil=True)
             lxml.etree.cleanup_namespaces(request)
             raw = lxml.etree.tostring(request)
-            print(raw)
 
             try:
                 raw = self.server.POST(
