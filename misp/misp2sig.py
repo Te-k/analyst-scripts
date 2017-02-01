@@ -3,6 +3,7 @@
 import argparse
 import sys
 import ConfigParser
+import urllib
 from collections import Counter
 from misp import MispServer, MispEvent
 from misplib import parse_config
@@ -42,7 +43,11 @@ if __name__ == "__main__":
     if args.dst == "gmailsearch":
         event = server.events.get(args.event)
         attributes = filter(
-            lambda x:x.type in ['domain', 'email-src', 'email-subject'],
+            lambda x:x.type in ['domain', 'email-src', 'email-subject'] and x.to_ids,
             event.attributes
         )
-        print " OR ".join(map(lambda x: '"' + x.value + '"', attributes))
+        sig = " OR ".join(map(lambda x: '”' + x.value + '”', attributes))
+        print(sig)
+        print("\n")
+        print("https://mail.google.com/mail/u/0/#search/" + urllib.quote(sig))
+
