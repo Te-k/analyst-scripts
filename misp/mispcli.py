@@ -22,6 +22,7 @@ if __name__ == "__main__":
     parser.add_argument('--no-ids', help='Disable IDS for these attributes', action='store_true')
     parser.add_argument('--to-ids', help='Enable IDS for these attributes', action='store_true')
     parser.add_argument('--detection', help='Summarize IOCs for detection', action='store_true')
+    parser.add_argument('--raw', '-r', help='Print raw information', action='store_true')
     parser.add_argument('-v', '--verbose', action='count', default=0)
     args = parser.parse_args()
 
@@ -79,7 +80,10 @@ if __name__ == "__main__":
                             else:
                                 print("Attr %s already not for IDS detection" % attr.value)
                         else:
-                            print("%s\t%s\t%s\t%s\t%s" % (attr.category, attr.type, attr.value, attr.comment, attr.to_ids))
+                            if args.raw:
+                                print("%s" % attr.value)
+                            else:
+                                print("%s\t%s\t%s\t%s\t%s" % (attr.category, attr.type, attr.value, attr.comment, attr.to_ids))
             elif args.attr is not None:
                 # search by attribute value
                 for attr in event.attributes:
