@@ -1,0 +1,15 @@
+humans.txt
+robots.txt
+sitemap.xml
+clientaccesspolicy.xml
+admin
+log
+.DS_Store
+logs
+.git
+.svn
+.htaccess
+.htaccess~
+.htpasswd
+.htpasswd~
+htaccess
