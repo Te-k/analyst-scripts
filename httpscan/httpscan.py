@@ -120,13 +120,13 @@ class Scanner(object):
 
     def _request(self, server, path):
         headers = {'user-agent': self.useragent}
-        if not server.startswith("http://"):
+        if not server.startswith("http"):
             server = "http://" + server
         try:
             res = requests.get(
                 urljoin(server, path),
                 headers=headers,
-                timeout=0.5,
+                timeout=1,
                 verify=False
             )
         except requests.exceptions.ConnectionError:
@@ -148,7 +148,7 @@ class Scanner(object):
             if header in headers:
                 infos[header] = headers[header]
         return infos
-sl
+
     def scan_page(self, path):
         """
         Temp function, san one page and prin results
@@ -300,7 +300,7 @@ if __name__ == '__main__':
     parser.add_argument('-v', '--verbose', action='count', default=0)
     parser.add_argument('--default', '-d', action='store_true', help='Default scan')
     parser.add_argument('--path', '-p', help='Request a specific path')
-    parser.add_argument('--phishing', '-P', help='Phishing Scan')
+    parser.add_argument('--phishing', '-P', help='Phishing Scan', action="store_true")
     parser.add_argument('--fingerprint', '-F', action='store_true', help='Phishing fingerprint')
     parser.add_argument('--signature', '-S', help='Test a specific Phishing signature')
     parser.add_argument('--output', '-o', help='Store all information in an output directory')

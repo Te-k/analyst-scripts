@@ -13,3 +13,8 @@ logs
 .htpasswd
 .htpasswd~
 htaccess
+.gitignore
+log.txt
+logs.txt
+index.html
+.well-known
