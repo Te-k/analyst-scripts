@@ -131,7 +131,7 @@ if __name__ == "__main__":
 
     elif args.attr is not None:
             # Search attributes
-            res = server.attributes.search(attr=args.attr)
+            res = server.attributes.search(value=args.attr)
             if len(res) == 0:
                 print("Attribute not found")
             else:
