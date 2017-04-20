@@ -78,7 +78,7 @@ if __name__ == '__main__':
             data[serie] = sdata
             if args.verbose:
                 print(sdata)
-        except IndexError, ValueError:
+        except (IndexError, ValueError, KeyError):
             # Weird results, don't know why
             if args.verbose:
                 print("Results in bad format, skipping these from the dump")
