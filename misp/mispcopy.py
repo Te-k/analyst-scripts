@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 import argparse
 import sys
+import requests
 from collections import Counter
 from misp import MispServer, MispEvent, MispTransportError, MispAttribute
 from misplib import parse_config
