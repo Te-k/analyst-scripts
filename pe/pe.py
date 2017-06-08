@@ -25,7 +25,7 @@ def display_headers(pe):
     """Display header information"""
     if pe.FILE_HEADER.IMAGE_FILE_DLL:
         print("DLL File! ")
-    print("Compile Time:", datetime.datetime.fromtimestamp(pe.FILE_HEADER.TimeDateStamp))
+    print("Compile Time: " + str(datetime.datetime.fromtimestamp(pe.FILE_HEADER.TimeDateStamp)))
 
 
 def display_sections(pe):
