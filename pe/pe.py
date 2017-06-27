@@ -61,6 +61,12 @@ def display_exports(pe):
     except AttributeError:
         return
 
+def display_debug(pe):
+    """Display debug infos"""
+    for i in pe.DIRECTORY_ENTRY_DEBUG:
+        if hasattr(i.entry, 'PdbFileName'):
+            print("Debug Information: %s" % i.entry.PdbFileName)
+
 
 def resource(level, r):
     """Recursive printing of resources"""
@@ -132,6 +138,8 @@ if __name__ == "__main__":
     display_hashes(data, pe)
     print("")
     display_headers(pe)
+    print("")
+    display_debug(pe)
     print("")
     display_sections(pe)
     print("")
