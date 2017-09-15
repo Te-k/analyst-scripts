@@ -1,5 +1,4 @@
 import argparse
-import ConfigParser
 import json
 import requests
 import os
@@ -16,6 +15,10 @@ try:
 except ImportError:
     # Python 2
     import httplib as http_client
+try:
+    import configparser as ConfigParser
+except ImportError:
+    import ConfigParser
 
 
 class Error(Exception):
@@ -103,7 +106,7 @@ class Bitly(object):
 
 class Link(object):
     def __init__(self, api, hash):
-        self._hash = hash
+        self._hash = hash.strip()
         self._api = api
         self._clicks = None
         self._is_aggregate = None
@@ -290,16 +293,17 @@ def load_config():
         print("Couldn't find the config file")
         sys.exit(1)
     config.read(conffile)
-    return {"login": config.get("General", "login"), "token": config.get("General", "token")}
+    return {"token": config.get("General", "token")}
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Check bit.ly infos through the API')
-    parser.add_argument('HASH', help='HASH of a link')
+    parser.add_argument('--hash', '-H', help='HASH of a link')
+    parser.add_argument('--file', '-f', help='File containing list of hashes')
     parser.add_argument('-v', '--verbose', action='count', default=0)
     args = parser.parse_args()
 
-    if args.verbose > 2:
+    if args.verbose > 1:
         http_client.HTTPConnection.debuglevel = 1
         logging.basicConfig()
         logging.getLogger().setLevel(logging.DEBUG)
@@ -309,5 +313,27 @@ if __name__ == "__main__":
 
     config = load_config()
     bitly = Bitly(access_token=config["token"])
-    link = Link(bitly, args.HASH)
-    link.pprint()
+    if args.hash:
+        link = Link(bitly, args.hash)
+        link.pprint()
+    elif args.file:
+        f = open(args.file, 'r')
+        data = f.read().split()
+        print("Date;Short URL;Long URL;Analytics;Aggregate;Aggregate Hash;User;Short URL Clicks;Long URL Clicks")
+        for d in data:
+            if d.strip() != "":
+                link = Link(bitly, d)
+                print("%s;%s;%s;%s;%s;%s;%s;%i;%i" % (
+                        link.timestamp.strftime("%m/%d/%Y %H:%M:%S"),
+                        link.short_url,
+                        link.long_url,
+                        link.short_url + "+",
+                        link.hash if link.is_aggregate else link.aggregate.hash,
+                        "Yes" if link.is_aggregate else "No",
+                        link.user_hash,
+                        link.clicks,
+                        link.clicks if link.is_aggregate else link.aggregate.clicks
+                    )
+                )
+    else:
+        print("Please provide a hash or a file")
