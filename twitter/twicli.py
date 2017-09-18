@@ -1,5 +1,7 @@
 import argparse
+import tweepy
 import json
+import sys
 from bird import Bird
 
 
@@ -13,6 +15,8 @@ if __name__ == "__main__":
             help='Download tweet with the given id')
     parser.add_argument('--save', '-s',
             help='save all infos about an user and their tweets')
+    parser.add_argument('--file', '-f',
+            help='File containing usernames, display user infos in CSV format')
 
     args = parser.parse_args()
 
@@ -38,3 +42,40 @@ if __name__ == "__main__":
         for t in b:
             data["tweets"].append(t._json)
         print(json.dumps(data))
+    elif args.file:
+        f = open(args.file, 'r')
+        data = f.read().split()
+        f.close()
+        print("Handle;Name;Id;Description;url;Location;Time zone;UTC offset;Created at;Last Tweet;lang;Tweet count;Favourite count;Followers count;Following count;List count;Verified;Geo enabled;Default profile;Default profile image;Contributors Enabled")
+        for d in data:
+            try:
+                user = bird.get_profile_information(d.strip())
+                print("%s;%s;%i;%s;%s;%s;%s;%i;%s;%s;%s;%i;%i;%i;%i;%i;%s;%s;%s;%s;%s" %
+                        (
+                            user.screen_name,
+                            user.name,
+                            user.id,
+                            user.description.replace(";", ",").replace("\n", ""),
+                            user.entities['url']['urls'][0]['expanded_url'] if user.url is not None else "",
+                            user.location,
+                            user.time_zone,
+                            user.utc_offset if user.utc_offset is not None else 0,
+                            user.created_at.strftime("%m/%d/%Y %H:%M:%S"),
+                            user.status.created_at.strftime("%m/%d/%Y %H:%M:%S") if user.status is not None else "",
+                            user.lang,
+                            user.statuses_count,
+                            user.favourites_count,
+                            user.followers_count,
+                            user.friends_count,
+                            user.listed_count,
+                            user.verified,
+                            user.geo_enabled,
+                            user.default_profile,
+                            user.default_profile_image,
+                            user.contributors_enabled
+                        )
+                )
+            except tweepy.error.TweepError:
+                sys.stderr.write("User %s not found\n" % d.strip())
+
+
