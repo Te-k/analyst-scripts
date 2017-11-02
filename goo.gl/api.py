@@ -51,7 +51,7 @@ if __name__ == "__main__":
     go = GoogleShortener(config)
     if args.hash:
         print(json.dumps(go.get_analytics(args.hash), sort_keys=True, indent=4, separators=(',', ':')))
-    else:
+    elif args.file:
         f = open(args.file, 'r')
         data = f.read().split()
         f.close()
@@ -68,3 +68,6 @@ if __name__ == "__main__":
                         res["analytics"]["allTime"]["longUrlClicks"]
                     )
             )
+    else:
+        print("Please provide either a hash or a file")
+        parser.print_help()

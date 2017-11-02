@@ -63,9 +63,10 @@ def display_exports(pe):
 
 def display_debug(pe):
     """Display debug infos"""
-    for i in pe.DIRECTORY_ENTRY_DEBUG:
-        if hasattr(i.entry, 'PdbFileName'):
-            print("Debug Information: %s" % i.entry.PdbFileName)
+    if hasattr(pe, 'DIRECTORY_ENTRY_DEBUG'):
+        for i in pe.DIRECTORY_ENTRY_DEBUG:
+            if hasattr(i.entry, 'PdbFileName'):
+                print("Debug Information: %s" % i.entry.PdbFileName)
 
 
 def resource(level, r):
@@ -98,10 +99,11 @@ def resource(level, r):
 
 def display_resources(pe):
     """Display resources"""
-    if(len(pe.DIRECTORY_ENTRY_RESOURCE.entries) > 0):
-        print("Resources:")
-        for r in pe.DIRECTORY_ENTRY_RESOURCE.entries:
-            resource(0, r)
+    if hasattr(pe, 'DIRECTORY_ENTRY_RESOURCE'):
+        if(len(pe.DIRECTORY_ENTRY_RESOURCE.entries) > 0):
+            print("Resources:")
+            for r in pe.DIRECTORY_ENTRY_RESOURCE.entries:
+                resource(0, r)
 
 
 if __name__ == "__main__":
