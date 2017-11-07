@@ -17,6 +17,13 @@ if __name__ == "__main__":
     parser.add_argument('host', metavar='HOST',  help='Host targeted')
     args = parser.parse_args()
 
+    # Remove Insicure warnings
+    try:
+        import requests.packages.urllib3
+        requests.packages.urllib3.disable_warnings()
+    except:
+        pass
+
     if not args.host.startswith("http"):
         host = "http://" + args.host
         hostname = args.host
@@ -30,7 +37,7 @@ if __name__ == "__main__":
 
     # Check host validity
     try:
-        r = requests.get(host, headers=headers)
+        r = requests.get(host, headers=headers, verify=False)
     except requests.ConnectionError:
         print("Host unavailable!")
         exit(1)
@@ -51,7 +58,7 @@ if __name__ == "__main__":
     fname = ffile.readline().strip()
     while fname != "":
         try:
-            r = requests.get(urlparse.urljoin(host, fname), headers=headers)
+            r = requests.get(urlparse.urljoin(host, fname), headers=headers, verify=False)
             if r.status_code == 200:
                 if args.save:
                     print("%s found ! (-> saved)" % fname)
