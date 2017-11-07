@@ -38,7 +38,7 @@ BDB.zip
 yahoo.zip
 update_info-paypal-tema-login-update_info-paypal-tema-login-update_info-paypal-tema-loginhome.zip
 outlook.zip
-icscards:nl.zip
+icscards%3anl.zip
 googledocs.zip
 alibaba.zip
 www.kantonalbank.ch.zip
