@@ -2,9 +2,8 @@
 # -*- coding: utf-8 -*-
 import argparse
 import sys
-import ConfigParser
 from collections import Counter
-from misp import MispServer, MispEvent
+from mispy import MispServer, MispEvent
 from misplib import parse_config
 
 """Command line interface for misp servers

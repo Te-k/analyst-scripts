@@ -1,4 +1,8 @@
-import ConfigParser
+try:
+    import ConfigParser
+except ImportError:
+    # Python 3
+    import configparser as ConfigParser
 import os
 
 def parse_config():
