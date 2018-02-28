@@ -33,7 +33,6 @@ if __name__ == '__main__':
     parser.add_argument('--until', '-u', default=None, type=int, help='Date until request will be done (format like 20160101)')
     parser.add_argument('--delay', '-d', default=5, type=int, help='Delay in second between each request')
     args = parser.parse_args()
-
     key = get_apikey()
 
     cc = censys.query.CensysQuery(api_id=key[0], api_secret=key[1])

@@ -90,3 +90,53 @@ class Bird(object):
         if self.api is None:
             self._authenticate()
         return self.api.get_status(tweet_id)
+
+    def get_followers(self, user):
+        """
+        Return followers of this user
+        """
+        if self.api is None:
+            self._authenticate()
+
+        followers = []
+        for page in tweepy.Cursor(self.api.followers, screen_name=user).pages():
+            followers.extend(page)
+        return followers
+
+    def get_followers_ids(self, user):
+        """
+        Return followers of this user
+        """
+        if self.api is None:
+            self._authenticate()
+
+        followers = []
+        for page in tweepy.Cursor(self.api.followers_ids, screen_name=user).pages():
+            followers.extend(page)
+        return followers
+
+    def get_following(self, user):
+        if self.api is None:
+            self._authenticate()
+
+        following = []
+        for page in tweepy.Cursor(self.api.friends, screen_name=user).pages():
+            following.extend(page)
+        return following
+
+    def get_following_ids(self, user):
+        if self.api is None:
+            self._authenticate()
+
+        following = []
+        for page in tweepy.Cursor(self.api.friends_ids, screen_name=user).pages():
+            following.extend(page)
+        return following
+
+    def get_following(self, user):
+        if self.api is None:
+            self._authenticate()
+
+        following = []
+        for page in tweepy.Cursor(self.api.friends, screen_name=user).pages():
+            following.extend(page)
