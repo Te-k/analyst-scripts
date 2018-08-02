@@ -6,13 +6,13 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Convert raw extraction from filetimeline.py into a nice timeline')
     parser.add_argument('FILE', help='an integer for the accumulator')
     parser.add_argument('--output', '-o', default="timeline.txt",
-            help='sum the integers (default: find the max)')
+            help='Output file')
     parser.add_argument('--no-access', '-n', action='store_true',
             help="Do not consider access time")
     args = parser.parse_args()
 
     out = []
-    with open(args.FILE, 'r') as fin:
+    with open(args.FILE, 'r', errors='replace') as fin:
         data = fin.read().split("\n")
 
     for d in data[1:]:
