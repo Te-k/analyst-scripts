@@ -40,22 +40,16 @@ if __name__ == '__main__':
         else:
             print("%i entries:" % len(res['data']))
             i = 0
-            now = datetime.now()
             for d in res['data']:
-                scandate = parse(d['timestamp'])
-                if scandate > now - timedelta(days=180):
-                    print(d['timestamp'])
-                    print(d['_shodan']['module'])
-                    print("%s/%i" % (d['transport'], d['port']))
-                    print(d['data'])
-                    if 'html' in d:
-                        print(d['html'])
-                    if 'http' in d:
-                        print(json.dumps(d['http']))
-                    print('')
-                    i += 1
-            if i == 0:
-                print("ALl entries older than 6 months")
+                print(d['timestamp'])
+                print(d['_shodan']['module'])
+                print("%s/%i" % (d['transport'], d['port']))
+                print(d['data'])
+                if 'html' in d:
+                    print(d['html'])
+                if 'http' in d:
+                    print(json.dumps(d['http']))
+                print('')
 
 
 
