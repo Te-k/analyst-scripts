@@ -5,7 +5,7 @@ import requests
 from urllib.parse import urljoin
 
 SIGNATURES = {
-    'wordpress': ['wp-admin'],
+    'wordpress': ['wp-admin', 'wp-login.php'],
     'drupal': ['CHANGELOG.txt', '/user/login', '/user/register', '/node/'],
     # 'opencart': ['index.php?route']
     # 'Joomla': ['option=com_']
