@@ -54,6 +54,8 @@ if __name__ == '__main__':
                 sys.exit(1)
 
             for proxy in data:
+                if proxy.strip() == '':
+                    continue
                 try:
                     p = proxy.split(':')
                     port = int(p[1])
