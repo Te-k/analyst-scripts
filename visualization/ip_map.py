@@ -22,7 +22,7 @@ if __name__ == '__main__':
     parser.add_argument('FILE', help='File contains IP addresses')
     parser.add_argument('--data', '-d', action='store_true',
             help='Print of csv of count per countries')
-    parser.add_argument('--plotly', '-p',
+    parser.add_argument('--plotly', '-p', action='store_true',
             help='Plot with plot.ly')
     parser.add_argument('--db', help='GeoIP Country db', default='~/.config/harpoon/GeoLite2-City.mmdb')
     parser.add_argument('--colours', '-c', help='Colours', default='Oranges')
