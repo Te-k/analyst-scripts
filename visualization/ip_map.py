@@ -44,9 +44,12 @@ if __name__ == '__main__':
         data = f.read().split('\n')
 
     for ip in data:
-        if ip != '':
-            res = db.city(ip)
-        ipcountries[res.country.iso_code]['count'] += 1
+        try:
+            if ip != '':
+                res = db.city(ip)
+            ipcountries[res.country.iso_code]['count'] += 1
+        except geoip2.errors.AddressNotFoundError:
+            pass
 
     if args.data:
         print('country,code,code3,count')

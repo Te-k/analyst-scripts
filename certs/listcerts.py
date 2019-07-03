@@ -28,8 +28,3 @@ if __name__ == "__main__":
     count = Counter(domains)
     for d in sorted(count.items(), key=operator.itemgetter(1), reverse=True):
         print("-%s: %i occurences" % (d[0], d[1]))
-
-
-
-
-
