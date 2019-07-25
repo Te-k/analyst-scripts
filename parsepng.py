@@ -7,25 +7,25 @@ import logging
 """ parsepng.py: Parse a PNG file looking for weird things """
 
 CHUNK_TYPES = {
-    'IHDR': "Contains (in this order) the image's width, height, bit depth, color type, compression method, filter method, and interlace method",
-    'PLTE': "contains the palette; list of colors",
-    'IDAT': "contains the image, which may be split among multiple IDAT chunks",
-    'IEND': "marks the image end",
-    'bKGD': "gives the default background color",
-    'cHRM': "gives the chromaticity coordinates of the display primaries and white point",
-    'gAMA': "specifies gamma",
-    'hIST': "can store the histogram, or total amount of each color in the image",
-    'iCCP': "ICC color profile",
-    'iTXt': "contains UTF-8 text, compressed or not, with an optional language tag",
-    'pHYs': "holds the intended pixel size and/or aspect ratio of the image",
-    'sBIT': "(significant bits) indicates the color-accuracy of the source data",
-    'sPLT': "suggests a palette to use if the full range of colors is unavailable",
-    'sRGB': "indicates that the standard sRGB color space is used",
-    'sTER': "stereo-image indicator chunk for stereoscopic images",
-    'tEXt': "can store text that can be represented in ISO/IEC 8859-1",
-    'tIME': "stores the time that the image was last changed",
-    'tRNS': "contains transparency information",
-    'zTXt': "contains compressed text with the same limits as tEXt"
+    b'IHDR': "Contains (in this order) the image's width, height, bit depth, color type, compression method, filter method, and interlace method",
+    b'PLTE': "contains the palette; list of colors",
+    b'IDAT': "contains the image, which may be split among multiple IDAT chunks",
+    b'IEND': "marks the image end",
+    b'bKGD': "gives the default background color",
+    b'cHRM': "gives the chromaticity coordinates of the display primaries and white point",
+    b'gAMA': "specifies gamma",
+    b'hIST': "can store the histogram, or total amount of each color in the image",
+    b'iCCP': "ICC color profile",
+    b'iTXt': "contains UTF-8 text, compressed or not, with an optional language tag",
+    b'pHYs': "holds the intended pixel size and/or aspect ratio of the image",
+    b'sBIT': "(significant bits) indicates the color-accuracy of the source data",
+    b'sPLT': "suggests a palette to use if the full range of colors is unavailable",
+    b'sRGB': "indicates that the standard sRGB color space is used",
+    b'sTER': "stereo-image indicator chunk for stereoscopic images",
+    b'tEXt': "can store text that can be represented in ISO/IEC 8859-1",
+    b'tIME': "stores the time that the image was last changed",
+    b'tRNS': "contains transparency information",
+    b'zTXt': "contains compressed text with the same limits as tEXt"
 }
 
 IMAGE_TYPE = {
@@ -53,7 +53,7 @@ def xorrr(data, key):
 def parse_png(data, logger):
     """Parse PNG data"""
     header = data[:8]
-    if header != "\x89PNG\x0d\x0a\x1a\x0a":
+    if header != b"\x89PNG\x0d\x0a\x1a\x0a":
         logger.critical("Bad PNG header... Quitting...")
         return ''
     else:
@@ -65,25 +65,25 @@ def parse_png(data, logger):
     while not end:
         length = struct.unpack('>I', data[i:i+4])[0]
         ctype = data[i+4:i+8]
-        if ctype == 'IEND':
+        if ctype == b'IEND':
             end = True
         cdata = data[i+8:i+8+length]
         crc = data[i+8+length:i+12+length]
-        logger.warn('%i - Chunk: %s - %i bytes' % (ichunk, ctype, length))
+        logger.warning('%i - Chunk: %s - %i bytes' % (ichunk, ctype, length))
         comment = None
 
         if ctype not in CHUNK_TYPES.keys():
-            logger.warn('\t- Bad chunk type %s' % ctype)
+            logger.warning('\t- Bad chunk type %s' % ctype)
             comment = "bad chunk type"
             if length > 5000:
                 # Look for PE header
                 for key in range(0, 255):
                     res = xorrr(cdata[:1000], key)
                     if "This program cannot be run in DOS mode" in res:
-                        logger.warn("\t- PE header found with XOR key 0x%x" % key)
+                        logger.warning("\t- PE header found with XOR key 0x%x" % key)
 
         # Header analysis
-        if ctype == 'IHDR':
+        if ctype == b'IHDR':
             width = struct.unpack('>I', cdata[0:4])[0]
             height = struct.unpack('>I', cdata[4:8])[0]
             bit_depth = ord(cdata[8:9])
@@ -92,28 +92,28 @@ def parse_png(data, logger):
             filter_method = ord(cdata[11:12])
             interlace_method = ord(cdata[12:13])
 
-            logger.warn("\t- Sixe %i x %i pixels" % (width, height))
+            logger.warning("\t- Sixe %i x %i pixels" % (width, height))
             if colour_type not in IMAGE_TYPE.keys():
-                logger.warn("\t- Unknown colour-type %i" % colour_type)
+                logger.warning("\t- Unknown colour-type %i" % colour_type)
             else:
-                logger.warn("\t- Colour-type : %i (%s)" % (colour_type, IMAGE_TYPE[colour_type]))
+                logger.warning("\t- Colour-type : %i (%s)" % (colour_type, IMAGE_TYPE[colour_type]))
                 if bit_depth not in IMAGE_TYPE_BIT_DEPTH[colour_type]:
-                    logger.warn("\t- Invalid bit-depth for this colour-type %i" % bit_depth)
+                    logger.warning("\t- Invalid bit-depth for this colour-type %i" % bit_depth)
 
             if compression != 0:
-                logger.warn("\t- Invalid compression method : %i" % compression)
+                logger.warning("\t- Invalid compression method : %i" % compression)
             if filter_method != 0:
-                logger.warn("\t- Invalid filter method : %i" % filter_method)
+                logger.warning("\t- Invalid filter method : %i" % filter_method)
             if interlace_method not in [0, 1]:
-                logger.warn("\t- Invalid interlace method : %i" % interlace_method)
+                logger.warning("\t- Invalid interlace method : %i" % interlace_method)
 
             comment = "Sixe %i x %i pixels" % (width, height)
-        if ctype == "tEXt":
+        if ctype == b"tEXt":
             text = cdata.split("\x00")
             comment = "%s : %s" % (text[0], text[1])
-            logger.warn("\t- " + comment)
+            logger.warning("\t- " + comment)
 
-        if ctype == "tIME":
+        if ctype == b"tIME":
             comment = "Last image modification : %i:%i:%i %02i/%02i/%i" % (
                     ord(cdata[4:5]),
                     ord(cdata[5:6]),
@@ -122,7 +122,7 @@ def parse_png(data, logger):
                     ord(cdata[2:3]),
                     struct.unpack('>H', cdata[:2])[0]
             )
-            logger.warn("\t- " + comment)
+            logger.warning("\t- " + comment)
 
         chunks.append({
             'length': length,
@@ -136,7 +136,7 @@ def parse_png(data, logger):
 
     if i > len(data):
         extra = data[i:]
-        logger.warn("Extra data : %i bytes" % extra)
+        logger.warning("Extra data : %i bytes" % extra)
     else:
         extra = None
 
