@@ -1,12 +1,14 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
 import pefile
 import struct
 import re
 import datetime
 import csv
 import hashlib
+from argparse import ArgumentParser
+import sys
 
-guid_regex = re.compile("[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}")
+guid_regex = re.compile(b"[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}")
 
 
 def format_guid_from_hex(hex_string):
@@ -18,8 +20,8 @@ def format_guid_from_hex(hex_string):
 
 def read_blob(blob):
     if len(blob) == 0:
-        return ""
-    first_byte = ord(blob[0])
+        return b""
+    first_byte = blob[0]
     if first_byte & 0x80 == 0:
         # easy one
         raw_string = blob[1:][:first_byte]
@@ -28,7 +30,7 @@ def read_blob(blob):
             return length_determined_string[1:]
         return length_determined_string
     # Our string is not very long
-    return ""
+    return b""
 
 
 def is_dot_net_assembly(pe):
@@ -43,14 +45,14 @@ def get_assembly_guids(assembly_path):
             txt_start = None
             txt_end = None
             for section in pe.sections:
-                if section.Name.startswith(".text\x00"):
+                if section.Name.startswith(b".text\x00"):
                     txt_start = section.PointerToRawData
                     txt_end = txt_start + section.SizeOfRawData
         except pefile.PEFormatError:
             return None
         if not is_dot_net_assembly(pe):
             return None
-            
+
         #Compile TimeDateStamp
         try:
             compiled = get_compiletime(pe)
@@ -71,18 +73,18 @@ def get_assembly_guids(assembly_path):
         else:
             offsets_to_test = [mdo - txt_start]
 
-        offsets_to_test.extend([l.start() for l in re.finditer("\x42\x53\x4a\x42", text_section)][::-1])
+        offsets_to_test.extend([l.start() for l in re.finditer(b"\x42\x53\x4a\x42", text_section)][::-1])
 
         del file_data
 
         for i_offset in offsets_to_test:
             i = text_section[i_offset:]
             try:
-                if "\x42\x53\x4a\x42" not in i:
+                if b"\x42\x53\x4a\x42" not in i:
                     continue
-                if not i.startswith("\x42\x53\x4a\x42"):
+                if not i.startswith(b"\x42\x53\x4a\x42"):
                     continue
-                meta_data_offset = i.find("\x42\x53\x4a\x42")
+                meta_data_offset = i.find(b"\x42\x53\x4a\x42")
                 clr_version_length = struct.unpack("<I", i[meta_data_offset + 12:meta_data_offset + 16])[0]
                 try:
                     stream_count = struct.unpack("<H", i[meta_data_offset + clr_version_length +
@@ -91,13 +93,13 @@ def get_assembly_guids(assembly_path):
                     continue
                 current_offset = meta_data_offset + clr_version_length + 20
                 heaps = {}
-                for c in xrange(stream_count):
+                for c in range(stream_count):
                     offset = struct.unpack("<I", i[current_offset:current_offset + 4])[0]
                     size = struct.unpack("<I", i[current_offset + 4:current_offset + 8])[0]
                     current_offset += 8
                     name = ""
                     while "\x00" not in name:
-                        name += i[current_offset:current_offset + 4]
+                        name += i[current_offset:current_offset + 4].decode('utf-8')
                         current_offset += 4
                     name = name.strip("\x00")
                     # print "{0} at {1}, {2} bytes".format(name, offset, size)
@@ -106,7 +108,7 @@ def get_assembly_guids(assembly_path):
                     #    raise
 
                 try:
-                    extracted_mvid = format_guid_from_hex(heaps["#GUID"][:16].encode("hex"))
+                    extracted_mvid = format_guid_from_hex(heaps["#GUID"][:16].hex())
                 except KeyError:
                     return {}
 
@@ -133,7 +135,7 @@ def get_assembly_guids(assembly_path):
 
                     row_counts = [0] * 64
                     t_offset = 24
-                    for index in xrange(len(tables_present)):
+                    for index in range(len(tables_present)):
                         if index < len(tables_present) and tables_present[index]:
                             row_counts[index] = struct.unpack("<I", tilde[t_offset:t_offset + 4])[0]
                             t_offset += 4
@@ -189,10 +191,10 @@ def get_assembly_guids(assembly_path):
                         # Don't care about the rest
                     ]
 
-                    for index in xrange(0x0c):
+                    for index in range(0x0c):
                         t_offset += row_type_widths[index] * row_counts[index]
 
-                    for index in xrange(row_counts[0x0c]):
+                    for index in range(row_counts[0x0c]):
                         # In the most strict interpretation, a typelib id is expressed as a
                         # GuidAttribute on the current assembly.
                         # To check that it's actually a GuidAttribute we'd have to support parsing
@@ -232,29 +234,23 @@ def get_assembly_guids(assembly_path):
 
                             data_value = read_blob(heaps["#Blob"][blob_index:])
                             if guid_regex.match(data_value):
-                                return {"mvid": extracted_mvid.lower(), "typelib_id": data_value.lower(), "compiled": compiled}
+                                return {"mvid": extracted_mvid.lower(), "typelib_id": data_value.decode('utf-8').lower(), "compiled": compiled}
                         t_offset += row_type_widths[0x0c]
                     return {"mvid": extracted_mvid.lower(), "compiled": compiled}
             except KeyboardInterrupt:
                 raise
-            except:
+            except Exception as e:
                 pass
-    except KeyboardInterrupt:
-        raise
-    except:
+    except Exception as e:
         return {}
     return {}
 
 
 if __name__ == "__main__":
-    from argparse import ArgumentParser
-
     version = "1.4.2"
-
     parser = ArgumentParser(
         prog=__file__,
         description="Extracts Typelib IDs and MVIDs from .NET assemblies.",
-        version="%(prog)s v" + version + " by Brian Wallace (@botnet_hunter)",
         epilog="%(prog)s v" + version + " by Brian Wallace (@botnet_hunter)"
     )
     parser.add_argument('path', metavar='path', type=str, nargs='*', default=[],
@@ -263,13 +259,15 @@ if __name__ == "__main__":
                         help="Scan paths recursively")
     parser.add_argument('-c', '--csv', default=False, required=False, action='store_true',
                         help="Save to CSV")
-
     args = parser.parse_args()
 
+    if sys.version_info[0] < 3:
+        print('This script only works with python3')
+        sys.exit(1)
+
     if args.path is None or len(args.path) == 0:
-        if not args.stdin:
-            parser.print_help()
-            exit()
+        parser.print_help()
+        exit()
 
     from os.path import isfile, isdir, join, abspath
     from glob import iglob
@@ -289,14 +287,14 @@ if __name__ == "__main__":
                         yield p, get_assembly_guids(p)
     def get_compiletime(pe):
         return datetime.datetime.fromtimestamp(pe.FILE_HEADER.TimeDateStamp)
-        
+
     if args.csv:
         theCSV = open('out.csv', 'wt')
         writer=csv.writer(theCSV)
         writer.writerow(('TYPELIB', 'MVID', 'HASH', 'COMPILED', 'PATH'))
     else:
-        print "{0}\t\t\t\t\t{1}\t\t\t\t\t{2}\t\t\t\t\t{3}\t\t{4}".format('TYPELIB', 'MVID', 'HASH', 'COMPILED', 'PATH')
-    
+        print("{0}\t\t\t\t\t{1}\t\t\t\t\t{2}\t\t\t\t\t{3}\t\t{4}".format('TYPELIB', 'MVID', 'HASH', 'COMPILED', 'PATH'))
+
     for file_path, result in scan_paths(args.path, args.recursive):
         if result is None:
             continue
@@ -313,14 +311,14 @@ if __name__ == "__main__":
             compiled = result["compiled"]
         except KeyError:
             compiled = "None\t\t\t\t\t"
-            
+
         with open(file_path, 'rb') as f:
             s = hashlib.sha256(f.read()).hexdigest()
-            
+
         if args.csv:
             writer.writerow((typelib_id, mvid, s, compiled, file_path))
         else:
-            print "{0}\t{1}\t{2}\t{3}\t{4}".format(typelib_id, mvid, s, compiled, file_path)
-            
-    if args.csv:        
+            print("{0}\t{1}\t{2}\t{3}\t{4}".format(typelib_id, mvid, s, compiled, file_path))
+
+    if args.csv:
         theCSV.close()
