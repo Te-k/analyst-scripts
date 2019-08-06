@@ -8,6 +8,12 @@ import hashlib
 from argparse import ArgumentParser
 import sys
 
+"""
+Code originally from :
+https://github.com/cylance/GetNETGUIDs/blob/master/getnetguids.py
+Code was only migrated to python3
+"""
+
 guid_regex = re.compile(b"[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}")
 
 
