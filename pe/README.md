@@ -1,3 +1,9 @@
 # PE
 
-* getnetguids.py : Script from [Cylance](https://github.com/cylance/GetNETGUIDs/blob/master/getnetguids.py), see [this blog post](https://medium.com/@seifreed/hunting-net-malware-40235e11dc05)
+* getnetguids.py : Script from [Cylance](https://github.com/cylance/GetNETGUIDs/blob/master/getnetguids.py), see [this blog post](https://medium.com/@seifreed/hunting-net-malware-40235e11dc05), updated for python 3
+* checkpesize.py : Check that the size of a PE file is correct
+* common_strings.py : identify strings in common between several files
+* pe.py : display information about a PE file (python2)
+* pescanner.py : display information about PE files, script by Michael Ligh (python 2)
+* pesearch.py : search for a string in a PE file
+* petimeline.py : Create a timeline of PE/DLL timestamp
