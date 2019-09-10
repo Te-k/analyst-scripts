@@ -31,7 +31,7 @@ Feel free to open [issues](https://github.com/Te-k/analyst-scripts/issues) if yo
 * [forensic](forensic) : forensic related scripts
     * `filetimeline.py` : get a list of files in a folder with their change time, modification time and birth time using stat (which does not give the creation time even if the file system has it)
     * `mactime.py` : convert this list of files into a csv timeline
-* format : convert files in different formats
+* [format](format/) : convert files in different formats
     * `csv2md.py` : convert a csv file to a markdown table
     * `extract_ttld.py` : extract the TLDs from a list of domains
     * `punycode.py` : convert [a punycode domain](https://en.wikipedia.org/wiki/Punycode) to its encoded form

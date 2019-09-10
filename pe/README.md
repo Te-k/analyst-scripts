@@ -4,6 +4,6 @@
 * checkpesize.py : Check that the size of a PE file is correct
 * common_strings.py : identify strings in common between several files
 * pe.py : display information about a PE file (python2)
-* pescanner.py : display information about PE files, script by Michael Ligh (python 2)
+* pescanner.py : display information about PE files, script by Michael Ligh and published in the [Malware Analysts Cookbook](https://www.amazon.fr/Malware-Analysts-Cookbook-DVD-Techniques/dp/0470613033) (python 2)
 * pesearch.py : search for a string in a PE file
 * petimeline.py : Create a timeline of PE/DLL timestamp
