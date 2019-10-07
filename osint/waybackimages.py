@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import bs4
 import hashlib
 import json

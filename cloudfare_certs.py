@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 from sslyze.server_connectivity_tester import ServerConnectivityError
 from sslyze.server_connectivity_tester import ServerConnectivityTester
 from sslyze.ssl_settings import TlsWrappedProtocolEnum
