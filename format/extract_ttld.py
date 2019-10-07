@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import argparse
 
 # Extract TTLD from a list of domains

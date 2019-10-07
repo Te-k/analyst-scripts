@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import numpy as np;
 import pandas as pd
 import calmap # Use my fork https://github.com/Te-k/calmap
