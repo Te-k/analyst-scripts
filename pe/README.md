@@ -9,3 +9,4 @@
 * petimeline.py : Create a timeline of PE/DLL timestamp
 * py2exe_unpack.py : extract and decompyle py2exe payloads (mostly copied from [unpy2exe](https://github.com/matiasb/unpy2exe))
 * pecheck.py : pecheck developed by [Didier Stevens](https://blog.didierstevens.com/)
+* disitool.py : python program to extract PE signatures by [Didier Stevens](https://blog.didierstevens.com/programs/disitool/)
