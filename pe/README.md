@@ -8,3 +8,4 @@
 * pesearch.py : search for a string in a PE file
 * petimeline.py : Create a timeline of PE/DLL timestamp
 * py2exe_unpack.py : extract and decompyle py2exe payloads (mostly copied from [unpy2exe](https://github.com/matiasb/unpy2exe))
+* pecheck.py : pecheck developed by [Didier Stevens](https://blog.didierstevens.com/)
