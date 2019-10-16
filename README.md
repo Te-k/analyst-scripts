@@ -46,5 +46,6 @@ Feel free to open [issues](https://github.com/Te-k/analyst-scripts/issues) if yo
 * [pt](pt/) : scripts using [Passive Total](https://community.riskiq.com/home) API
 * [resources](resources/) : interesting infosec resources
 * [shodan](shodan/) : [shodan.io](https://www.shodan.io/) scripts
+* [twilio](twilio/) : scripts related to [Twilio](https://www.twilio.com/)
 * [twitter](twitter/) : Twitter stuff
 * [visualization](visualization/) : nice graphs everywhere
