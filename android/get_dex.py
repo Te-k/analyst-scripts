@@ -31,13 +31,13 @@ if __name__ == '__main__':
                             f.write(get_dex(apk_path))
                         print("Dex file {} created".format(dex_filename))
     elif os.path.isfile(args.PATH):
-        dex_filename = args.PATH.splitext(apk_path)[0] + '.classes.dex'
+        dex_filename = os.path.splitext(args.PATH)[0] + '.classes.dex'
         if os.path.exists(dex_filename):
             print("{} already exist".format(dex_filename))
         else:
             with open(dex_filename, 'wb') as f:
                 f.write(get_dex(args.PATH))
-            print("Dex file {} created".format())
+            print("Dex file {} created".format(dex_filename))
     else:
         print("Invalid path")
         sys.exit(-1)
