@@ -12,3 +12,4 @@ Scripts relying mostly on [androguard](https://github.com/androguard/androguard)
 * `extract_rsrc_strings.py` : list all strings in resources
 * `get_method_code.py` : extract code, byte code or hex code from a method
 * `get_certificate.py` : extract certificate information
+* `snoopdroid_vt_check.py` : check snoopdroid results on VT
