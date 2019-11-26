@@ -32,6 +32,23 @@ def extract_targets(input_zip):
     return res
 
 
+def extract_metadata(input_zip):
+    """
+    Extract metadata information
+    """
+    res = []
+    if 'docProps/core.xml' in input_zip.namelist():
+        data = input_zip.read('docProps/core.xml')
+        root = etree.fromstring(data)
+        if not root.tag.endswith('coreProperties'):
+            print("Impossible to extract metadata")
+        else:
+            for c in root.getchildren():
+                res.append([c.tag.split('}')[1], c.text])
+
+    return res
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Analyze docx document (pretty limited for now)')
     parser.add_argument('FILE', help='Docx document')
@@ -54,8 +71,14 @@ if __name__ == '__main__':
     else:
         print('No VBA Macros found')
 
-    # Analyze types of files
+    # Show metadata
     input_zip = ZipFile(args.FILE)
+    print("")
+    print("Metadata:")
+    for d in extract_metadata(input_zip):
+        print("-{} : {}".format(*d))
+
+    # Analyze types of files
     print("")
     print("Types of files:")
     for c in collections.Counter([os.path.splitext(a)[1] for a in input_zip.namelist()]).items():
@@ -65,7 +88,6 @@ if __name__ == '__main__':
 
     # Check for "script" target exploiting CVE-2017-8570
     targets = extract_targets(input_zip)
-    print(targets)
     scripts = [a[0] for a in targets if a[0].strip().lower().startswith('script')]
     print("")
     if len(scripts) > 0:
