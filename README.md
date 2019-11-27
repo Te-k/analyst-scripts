@@ -40,6 +40,7 @@ Feel free to open [issues](https://github.com/Te-k/analyst-scripts/issues) if yo
 * [harpoon-extra](harpoon-extra/) : some scripts expanding [Harpoon](https://github.com/Te-k/harpoon) features
 * [http](http/) : HTTP stuff (mostly outdated)
 * [misp](misp/) : some scripts helping using [MISP servers](https://www.misp-project.org/)
+* [network](network/) : network related scripts
 * [ooni](ooni/) : [OONI](https://ooni.torproject.org/) API scripts
 * [osint](osint/) : open source intelligence scripts
 * [pe](pe/) : PE scripts (most of them moved to [PE](https://github.com/Te-k/pe))
