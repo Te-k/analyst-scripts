@@ -2,11 +2,33 @@
 import argparse
 import os
 import sys
-try:
-    import koodous
-except ModuleNotFoundError:
-    print("Please install koodous python library - pip install koodous")
-    sys.exit(-1)
+import requests
+
+
+def search(key, query):
+    """
+    Search in Koodous
+    """
+    url = "https://api.koodous.com/apks"
+    headers = {"Authorization":"Token {}".format(key)}
+    params = {'search':query}
+    results = []
+    finished = False
+    next = None
+    while not finished:
+        if next:
+            r = requests.get(url=next, headers=headers)
+        else:
+            r = requests.get(url=url, headers=headers, params=params)
+        if r.status_code != 200:
+            return results
+        data = r.json()
+        results += data['results']
+        if data.get('next', None):
+            next = data['next']
+        else:
+            finished = True
+    return results
 
 
 """
@@ -25,7 +47,6 @@ if __name__ == '__main__':
     with open(koodous_conf, 'r') as f:
         key = f.read().strip()
 
-    koodous_obj = koodous.Koodous(key)
-    apks = koodous_obj.search(args.QUERY)
+    apks = search(key, args.QUERY)
     for app in apks:
         print(app['sha256'])
