@@ -101,8 +101,8 @@ def find_functionalities(dx):
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Process some integers.')
-    parser.add_argument('APK', help='an integer for the accumulator')
+    parser = argparse.ArgumentParser(description='Generate a JSON summary of an APK using androguard')
+    parser.add_argument('APK', help='An APK file')
     args = parser.parse_args()
 
     if not os.path.isfile(args.APK):
@@ -164,11 +164,9 @@ if __name__ == '__main__':
             'sha256': m.hexdigest(),
             'ssdeep': ssdeep.hash(dex_values[dex])
         }
-    else:
-        print("Multidex android file, not implemented yet")
 
     res['functionalities'] = find_functionalities(dexes)
 
-    print(json.dumps({'androguard': res}, indent=4, sort_keys=True))
+    print(json.dumps(res, indent=4, sort_keys=True))
 
 
