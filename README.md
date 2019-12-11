@@ -28,6 +28,7 @@ Feel free to open [issues](https://github.com/Te-k/analyst-scripts/issues) if yo
     * `censyslib.py`  a file to reuse the function to get the API key from `~/.censys`
 * [certs](certs/) : scripts to deal with certificates and CT dbs
     * `listcerts.py` list certificates from a domain in crt.sh using [pycrtsh](https://github.com/Te-k/pycrtsh)
+* [email](email/) : scripts to handle emails
 * [forensic](forensic) : forensic related scripts
     * `filetimeline.py` : get a list of files in a folder with their change time, modification time and birth time using stat (which does not give the creation time even if the file system has it)
     * `mactime.py` : convert this list of files into a csv timeline
