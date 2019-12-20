@@ -22,8 +22,8 @@ if __name__ == '__main__':
 
     if os.path.isdir(args.PATH):
         for f in os.listdir(args.PATH):
-            if os.path.isfile(f):
-                apk_path = os.path.join(args.PATH, f)
+            apk_path = os.path.join(args.PATH, f)
+            if os.path.isfile(apk_path):
                 if androconf.is_android(apk_path) == 'APK':
                     dex_filename = os.path.splitext(apk_path)[0] + '.classes.dex'
                     if not os.path.exists(dex_filename):
