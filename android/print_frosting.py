@@ -26,7 +26,7 @@ if __name__ == '__main__':
             if os.path.isfile(apk_path):
                 if androconf.is_android(apk_path) == 'APK':
                     a, d, dx = AnalyzeAPK(apk_path)
-                    a.is_signed_v2()
+                    a.parse_v2_v3_signature()
                     if 0x2146444e in a._v2_blocks:
                         print("{} : FROSTING".format(f))
                     else:
