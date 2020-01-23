@@ -14,3 +14,4 @@ Scripts relying mostly on [androguard](https://github.com/androguard/androguard)
 * `get_certificate.py` : extract certificate information
 * `print_frosting.py` : check if an APK contains Google Play Metadata (also called frosting) ([ref](https://stackoverflow.com/questions/48090841/security-metadata-in-android-apk/51857027#51857027))
 * `snoopdroid_vt_check.py` : check snoopdroid results on VT
+* `is_obfuscated.py` : check if class names are obfuscated or not

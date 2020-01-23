@@ -41,8 +41,6 @@ if __name__ == '__main__':
                             pkg_version
                         )
                     )
-
-        pass
     elif os.path.isfile(args.PATH):
         print("File:\t {}".format(os.path.basename(args.PATH)))
         print("SHA256:\t {}".format(get_sha256(args.PATH)))
