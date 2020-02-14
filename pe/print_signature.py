@@ -4,9 +4,6 @@ import os
 import sys
 
 
-def print_signature(binary):
-    pass
-
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Process some PE Files')
     parser.add_argument('FILE', help='PE File')
@@ -19,7 +16,7 @@ if __name__ == '__main__':
             if os.path.isfile(os.path.join(args.FILE, f)):
                 binary = lief.parse(os.path.join(args.FILE, f))
                 if binary:
-                    if len(binary.signature.certificates):
+                    if binary.has_signature:
                         print("{} - SIGNED".format(f))
                     else:
                         if args.verbose:
@@ -32,14 +29,18 @@ if __name__ == '__main__':
                     print("{} - Directory".format(f))
     elif os.path.isfile(args.FILE):
         binary = lief.parse(args.FILE)
-        if len(binary.signature.certificates):
-            for crt in binary.signature.certificates:
-                print(crt)
+        if binary.has_signature:
+            if args.verbose:
+                for c in binary.signature.certificates:
+                    print(c)
+                    print("")
+            else:
+                issuer_serial = ":".join(map(lambda e : "{:02x}".format(e), binary.signature.signer_info.issuer[1]))
+                for c in binary.signature.certificates:
+                    serial = ":".join(map(lambda e : "{:02x}".format(e), c.serial_number))
+                    if serial == issuer_serial:
+                        print(c)
         else:
             print("This binary is not signed")
     else:
         print("Invalid file path")
-        sys.exit(1)
-
-
-
