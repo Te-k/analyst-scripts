@@ -1,5 +1,6 @@
 # PE
 
+* build_shellcode_pe.py : build a PE file from a shellcode
 * checkpesize.py : Check that the size of a PE file is correct
 * common_strings.py : identify strings in common between several files
 * disitool.py : python program to extract PE signatures by [Didier Stevens](https://blog.didierstevens.com/programs/disitool/)

@@ -2,6 +2,7 @@
 import argparse
 from capstone import *
 
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Disassemble')
     parser.add_argument('--type', '-t', choices=['x86', 'x86-64', 'ARM', 'ARM64'],
@@ -18,8 +19,11 @@ if __name__ == '__main__':
         md = Cs(CS_ARCH_X86, CS_MODE_64)
     elif args.type == 'ARM':
         md = Cs(CS_ARCH_ARM, CS_MODE_ARM)
-    else:
+    elif args.type == 'ARM64':
         md = Cs(CS_ARCH_ARM64, CS_MODE_ARM)
+    else:
+        md = Cs(CS_ARCH_X86, CS_MODE_32)
 
-    for (address, size, mnemonic, op_str) in md.disasm_lite(code, 0x1000):
+
+    for (address, size, mnemonic, op_str) in md.disasm_lite(code, 0x0):
         print("0x%x:\t%s\t%s" %(address, mnemonic, op_str))
