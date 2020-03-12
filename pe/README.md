@@ -16,3 +16,4 @@
 * print_signature.py : check if PE files are signed
 * py2exe_unpack.py : extract and decompyle py2exe payloads (mostly copied from [unpy2exe](https://github.com/matiasb/unpy2exe))
 * pyinstxtractor.py : extract the contents of a PyInstaller generated Windows executable file by Extreme Coders ([source](https://sourceforge.net/projects/pyinstallerextractor/))
+* unxor.py : Check if the file is a xored PE file and if yes unxor it (single byte key only)
