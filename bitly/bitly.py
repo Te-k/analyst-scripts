@@ -75,7 +75,11 @@ class Bitly(object):
             return self._apicall("/v3/user/link_history")
 
     def info(self, hash):
-        return self._apicall("/v3/info", {"shortUrl": self.linkbase + hash, "expand_user": True})
+        data = self._apicall("/v3/info", {"shortUrl": self.linkbase + hash, "expand_user": True})
+        if "info" in data:
+            if "error" in data["info"][0]:
+                raise BitlyError(200, data["info"][0]["error"])
+        return data
 
     def link_expand(self, hash):
         return self._apicall("/v3/expand", {"shortUrl": self.linkbase + hash})
@@ -302,6 +306,7 @@ if __name__ == "__main__":
     parser.add_argument('--hash', '-H', help='HASH of a link')
     parser.add_argument('--file', '-f', help='File containing list of hashes')
     parser.add_argument('-v', '--verbose', action='count', default=0)
+    parser.add_argument('-r', '--raw', action='store_true')
     args = parser.parse_args()
 
     if args.verbose > 1:
@@ -315,8 +320,11 @@ if __name__ == "__main__":
     config = load_config()
     bitly = Bitly(access_token=config["token"])
     if args.hash:
-        link = Link(bitly, args.hash)
-        link.pprint()
+        if args.raw:
+            print(json.dumps(bitly.info(args.hash)))
+        else:
+            link = Link(bitly, args.hash)
+            link.pprint()
     elif args.file:
         f = open(args.file, 'r')
         data = f.read().split()

@@ -39,7 +39,7 @@ Feel free to open [issues](https://github.com/Te-k/analyst-scripts/issues) if yo
 * [goo.gl](goo.gl/) : playing with the now deprecated goo.gl API
     * `api.py` : API and CLI tool to query Google URL shortener goo.gl (soon deprecated by Google)
 * [harpoon-extra](harpoon-extra/) : some scripts expanding [Harpoon](https://github.com/Te-k/harpoon) features
-* [http](http/) : HTTP stuff (mostly outdated)
+* [web](web/) : Web stuff (mostly outdated)
 * [misp](misp/) : some scripts helping using [MISP servers](https://www.misp-project.org/)
 * [network](network/) : network related scripts
 * [ooni](ooni/) : [OONI](https://ooni.torproject.org/) API scripts
