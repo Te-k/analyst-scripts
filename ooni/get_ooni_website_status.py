@@ -2,6 +2,7 @@
 import argparse
 import requests
 import sys
+import time
 from datetime import datetime, timedelta
 from colored import fg, bg, attr
 
@@ -60,6 +61,27 @@ class OoniRepository(object):
             if "client_resolver" in data["test_keys"]:
                 return data["test_keys"]["client_resolver"]
         return ""
+
+    def extract_tcp_status(self, data):
+        """
+        return TCP status info
+        """
+        return data['test_keys']['tcp_connect'][0]['status'].get('success')
+
+    def extract_http_status(self, data):
+        """
+        Return HTTP status
+        """
+        if "test_keys" in data:
+            if "requests" in data["test_keys"]:
+                if len(data['test_keys']['requests']) > 0:
+                    if "failure" in data['test_keys']['requests'][0]:
+                        if data['test_keys']['requests'][0]['failure'] is not None:
+                            return (True, data['test_keys']['requests'][0]['failure'])
+                    if "response" in data['test_keys']['requests'][0]:
+                        return (False, data['test_keys']['requests'][0]['response'].get('response_line'))
+                    return (False, "")
+        return (True, "")
 
 
 if __name__ == "__main__":
@@ -123,8 +145,10 @@ if __name__ == "__main__":
             data = ooni.download_file(r['measurement_url'])
             dns_server = ooni.extract_dns_server(data)
             ips = ooni.extract_dns_answer(data)
+            tcp = ooni.extract_tcp_status(data)
+            http = ooni.extract_http_status(data)
             colors = {'Yes': 'red', 'No': 'green', 'None': 249}
-            print("%s\t %sAnomaly: %s\t%sConfirmed: %s%s (DNS: %s | IP: %s)" % (
+            print("%s\t %sAnomaly: %s\t%sConfirmed: %s%s | DNS: %s | IP: %s | TCP : %s | HTTP %s %s" % (
                     r['measurement_start_time'],
                     fg(colors['Yes']) if r["anomaly"] else fg(colors['No']),
                     'Yes' if r["anomaly"] else "No",
@@ -132,8 +156,13 @@ if __name__ == "__main__":
                     "Yes" if r["confirmed"] else "No",
                     attr(0),
                     dns_server,
-                    ",".join(ips)
+                    ",".join(ips),
+                    "Success" if tcp else "Failed",
+                    "Failed" if http[0] else "Success",
+                    http[1]
                     )
             )
+            # Sleep to avoid overloading OONI API
+            time.sleep(0.5)
         print("")
 
