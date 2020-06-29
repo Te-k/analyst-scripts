@@ -109,5 +109,5 @@ if __name__ == '__main__':
     print("")
     print("rel Targets urls:")
     for t in targets:
-        if t[1].strip().lower().startswith('http'):
+        if t[1].strip().lower().startswith('http') or t[1].strip().lower().startswith('file'):
             print("{} : {}".format(t[0], t[1]))
