@@ -5,6 +5,7 @@
 * common_strings.py : identify strings in common between several files
 * disitool.py : python program to extract PE signatures by [Didier Stevens](https://blog.didierstevens.com/programs/disitool/)
 * extract_sig.py : extract the digital signature from a PE file
+* extract_sections_python.py : extract information on sections in pure python
 * getnetguids.py : Script from [Cylance](https://github.com/cylance/GetNETGUIDs/blob/master/getnetguids.py), see [this blog post](https://medium.com/@seifreed/hunting-net-malware-40235e11dc05), updated for python 3
 * get_imphash.py : extract imp hash of PE files
 * get_richheaderhash.py ; Extract RichPE hash of PE files

@@ -36,6 +36,8 @@ class Bitly(object):
     """
     Python class managing bitly API calls
     Mostly inspired from https://github.com/bitly/bitly-api-python
+    Note : You can get the clicks per day or minute with
+    link._api._apicall("/v3/link/clicks", {"link": link._api.linkbase + hash, "unit": "day", "units": -1, "rollup": "false"})
     """
 
     def __init__(self, access_token):

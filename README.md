@@ -36,6 +36,7 @@ Feel free to open [issues](https://github.com/Te-k/analyst-scripts/issues) if yo
     * `csv2md.py` : convert a csv file to a markdown table
     * `extract_ttld.py` : extract the TLDs from a list of domains
     * `punycode.py` : convert [a punycode domain](https://en.wikipedia.org/wiki/Punycode) to its encoded form
+* [ghidra_scripts](ghidra_scripts/) : scripts for ghidra
 * [goo.gl](goo.gl/) : playing with the now deprecated goo.gl API
     * `api.py` : API and CLI tool to query Google URL shortener goo.gl (soon deprecated by Google)
 * [harpoon-extra](harpoon-extra/) : some scripts expanding [Harpoon](https://github.com/Te-k/harpoon) features
