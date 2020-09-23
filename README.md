@@ -9,6 +9,7 @@ Feel free to open [issues](https://github.com/Te-k/analyst-scripts/issues) if yo
 * `clamav_to_yara.py` : Convert ClamAV signature to Yara (from the [Malware Analyst's Cookbook](https://www.wiley.com/en-us/Malware+Analyst%27s+Cookbook+and+DVD%3A+Tools+and+Techniques+for+Fighting+Malicious+Code-p-9780470613030))
 * `cloudcidrs.py` : check if an IP is part of a Cloud provider range (for now, only Google Cloud and Amazon AWS, inspired from [cloudcidrs](https://cloudyr.github.io/cloudcidrs/))
 * `disassemble.py` : disassemble a binary file using [Capstone](http://www.capstone-engine.org/) (mostly for shellcode)
+* `csv_extract.py` : extract a column from a csv file
 * `hostnametoips.py` : resolve a list of hostnames in a text files and return list of uniq IPs
 * `infect.sh` : classic script to create an encrypted zip of a file with password infected (password used to share malware)
 * `mqtt-get.py` : basic script to do get requests to an [MQTT](https://fr.wikipedia.org/wiki/MQTT) service
@@ -41,6 +42,7 @@ Feel free to open [issues](https://github.com/Te-k/analyst-scripts/issues) if yo
     * `api.py` : API and CLI tool to query Google URL shortener goo.gl (soon deprecated by Google)
 * [harpoon-extra](harpoon-extra/) : some scripts expanding [Harpoon](https://github.com/Te-k/harpoon) features
 * [web](web/) : Web stuff (mostly outdated)
+* [macos](macos/) : Mac OSX related scripts
 * [misp](misp/) : some scripts helping using [MISP servers](https://www.misp-project.org/)
 * [network](network/) : network related scripts
 * [ooni](ooni/) : [OONI](https://ooni.torproject.org/) API scripts
@@ -53,3 +55,4 @@ Feel free to open [issues](https://github.com/Te-k/analyst-scripts/issues) if yo
 * [twilio](twilio/) : scripts related to [Twilio](https://www.twilio.com/)
 * [twitter](twitter/) : Twitter stuff
 * [visualization](visualization/) : nice graphs everywhere
+* [vt](vt/) : scripts related to Virus Total

@@ -5,4 +5,6 @@ Two scripts here to help creating timeline on Linux live systems :
 * `mactime.py` : convert this list of files into a csv timeline
 
 Misc :
+* `extract_chrome_history.py`: extract history from a Chrome History SQlite file
 * `ios_unpack.py` : unpack iOS backup folder from iTunes or [libimobiledevice](https://www.libimobiledevice.org/)
+

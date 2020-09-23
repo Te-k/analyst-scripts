@@ -243,7 +243,7 @@ rule BLOWFISH_Constants {
 		version = "0.1"
 	strings:
 		$c0 = { D1310BA6 }
-		$c1 = { A60B31D1 }	
+		$c1 = { A60B31D1 }
 		$c2 = { 98DFB5AC }
 		$c3 = { ACB5DF98 }
 		$c4 = { 2FFD72DB }
@@ -421,7 +421,7 @@ rule DarkEYEv3_Cryptor {
 		hash8 = "f3d5b71b7aeeb6cc917d5bb67e2165cf8a2fbe61"
 		score = 55
 	strings:
-		$s0 = "\\DarkEYEV3-" 
+		$s0 = "\\DarkEYEV3-"
 	condition:
 		uint16(0) == 0x5a4d and $s0
 }
@@ -833,7 +833,7 @@ rule OpenSSL_DSA
 	meta:
 		author="_pusher_"
 		date="2016-08"
-	strings:	
+	strings:
 		$a0 = "bignum_data" wide ascii nocase
 		$a1 = "DSA_METHOD" wide ascii nocase
 		$a2 = "PDSA" wide ascii nocase
@@ -1048,16 +1048,28 @@ rule RijnDael_AES_CHAR_inv
 	condition:
 		$c0
 }
+rule RijnDael_AES_CHAR_inv2 {
+    meta:
+        author = "Etienne Maynier"
+        description = "Rijndael AES S-inv"
+        ref = "https://en.wikipedia.org/wiki/Rijndael_S-box"
 
-rule RijnDael_AES_LONG
-{	meta:
-		author = "_pusher_"
-		description = "RijnDael AES"
-		date = "2016-06"
-	strings:
-		$c0 = { 63 7C 77 7B F2 6B 6F C5 30 01 67 2B FE D7 AB 76 CA 82 C9 7D FA 59 47 F0 AD D4 A2 AF 9C A4 72 C0 }
-	condition:
-		$c0
+    strings:
+        $c0 = { 52 09 6a d5 30 36 a5 38 bf 40 a3 9e 81 f3 d7 fb 7c e3 39 82 9b 2f ff 87 34 8e 43 44 c4 de e9 cb }
+    condition:
+        $c0
+}
+
+rule RijnDael_AES_Key_Schedule {
+    meta:
+        author = "Etienne Maynier"
+        ref = "https://en.wikipedia.org/wiki/AES_key_schedule"
+
+    strings:
+         $c0 = { 01	02	04	08	10	20	40	80	1B	36 }
+
+    condition:
+        $c0
 }
 
 rule RsaRef2_NN_modExp
@@ -1189,7 +1201,7 @@ rule x509_public_key_infrastructure_cert
 		ext = "crt"
 	strings:
 		$c0 = { 30 82 ?? ?? 30 82 ?? ?? }
-	condition: 
+	condition:
 		$c0
 }
 
@@ -1197,7 +1209,7 @@ rule pkcs8_private_key_information_syntax_standard
 {	meta:
 		desc = "Found PKCS #8: Private-Key"
 		ext = "key"
-	strings: 
+	strings:
 		$c0 = { 30 82 ?? ?? 02 01 00 }
 	condition:
 		$c0
