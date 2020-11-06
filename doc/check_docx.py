@@ -4,7 +4,7 @@ import argparse
 import collections
 from zipfile import ZipFile
 from lxml import etree
-from oletools.olevba import VBA_Parser, TYPE_OLE, TYPE_OpenXML, TYPE_Word2003_XML, TYPE_MHTML
+from oletools.olevba import VBA_Parser, TYPE_OLE, TYPE_OpenXML, TYPE_Word2003_XML, TYPE_MHTML, FileOpenError
 
 """
 Script analyzing docx files
@@ -59,17 +59,20 @@ if __name__ == '__main__':
         sys.exit(1)
 
     # Check if any macro and extract it
-    vbaparser = VBA_Parser(args.FILE)
-    if vbaparser.detect_vba_macros():
-        print('VBA Macros found')
-        mac_name = os.path.splitext(args.FILE)[0] + '.macro'
-        with open(mac_name, 'w+') as f:
-            for (filename, stream_path, vba_filename, vba_code) in vbaparser.extract_macros():
-                f.write(vba_code)
-                f.write('\n')
-        print("Macro dumped in {}".format(mac_name))
-    else:
-        print('No VBA Macros found')
+    try:
+        vbaparser = VBA_Parser(args.FILE)
+        if vbaparser.detect_vba_macros():
+            print('VBA Macros found')
+            mac_name = os.path.splitext(args.FILE)[0] + '.macro'
+            with open(mac_name, 'w+') as f:
+                for (filename, stream_path, vba_filename, vba_code) in vbaparser.extract_macros():
+                    f.write(vba_code)
+                    f.write('\n')
+            print("Macro dumped in {}".format(mac_name))
+        else:
+            print('No VBA Macros found')
+    except FileOpenError:
+        print("Failed to open file with olevba")
 
     # Show metadata
     input_zip = ZipFile(args.FILE)
