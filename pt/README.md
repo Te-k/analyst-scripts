@@ -4,4 +4,4 @@
 * `get_ip_domains.py` : extract all the domains for an IP address
 * `get_subdomains.py` : list subdomains of a domain
 * `get_quota.py` : get PT quota
-* `get_subdomains.py` : get subdomains
+* `get_hashes.py` : get hashes for a list of domains

@@ -9,6 +9,7 @@ Scripts relying mostly on [androguard](https://github.com/androguard/androguard)
 * `koodous_tag.py` : comment on some Koodous samples
 * `koodous_search.py` : search in Koodous
 * `download_androguard_report.py` : download androguard report from Koodous, copy of [this script](https://github.com/Koodous/androguard-yara/blob/master/download_androguard_report.py) updated for Python 3
+* `dump_android_backup.py`: decrypt and decompress an Android backup files (modified version of [this script](https://github.com/FloatingOctothorpe/dump_android_backup))
 * `extract_firebase.py` : check if firebase address in ressources
 * `extract_rsrc_strings.py` : list all strings in resources
 * `get_method_code.py` : extract code, byte code or hex code from a method
