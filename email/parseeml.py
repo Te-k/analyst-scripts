@@ -1,72 +1,43 @@
 import argparse
 import os
 import sys
+import re
 import base64
 from email.header import decode_header
+import email
+from lxml import html
+import quopri
 
 
-def parse_eml(data):
+def decode_html(body, quoted=True):
     """
-    Parse the content of an eml file
+    Extract links and images from html
     """
-    lines = data.split('\n')
-    l = 0
-    res = []
-    _count = 0
-    while l < len(lines):
-        if lines[l].startswith('----') and not lines[l].strip().endswith('--'):
-            # New something
-            # Get the type and encoding
-            _id = lines[l].strip('-')
-            _type = None
-            _charset = None
-            _encoding = None
-            _attachment = False
-            _filename = None
-            l += 1
-            # Parse header
-            while lines[l].strip() != '':
-                if lines[l].startswith('Content-Type'):
-                    _type = lines[l][14:].split(';')[0]
-                    if 'charset=' in lines[l]:
-                        _charset = lines[l][lines[l].find('charset=')+8:]
-                if lines[l].startswith('Content-Transfer-Encoding'):
-                    _encoding = lines[l][26:].strip()
-                if lines[l].startswith('Content-Disposition: attachment'):
-                    _attachment = True
-                    _filename = lines[l][lines[l].find('filename=')+10:].strip('"')
-                    if _filename.startswith('=?'):
-                        # Encoded filename
-                        a = decode_header(_filename)
-                        _filename = "".join(list(map(lambda x: x[0].decode(x[1]), a)))
-                l += 1
-            while lines[l].strip() == '':
-                l += 1
+    if quoted:
+        tree = html.fromstring(quopri.decodestring(body))
+    else:
+        tree = html.fromstring(body)
+    links = set(tree.xpath("//a/@href"))
+    images = set(tree.xpath("//img/@src"))
+    print("Links:")
+    for a in links:
+        print(a)
+    print("")
+    print("Images:")
+    for a in images:
+        print(a)
 
-            # Parse content
-            content = ''
-            if not lines[l].startswith('----'):
-                while lines[l].strip() != '' and not lines[l].startswith('----'):
-                    content += lines[l].strip()
-                    l += 1
 
-            a = {"type": _type, "id": _id, "attachment": _attachment, "count": _count, "content": content}
-            if _charset:
-                a["charset"] = _charset
-            if _encoding:
-                a["encoding"] = _encoding
-            if _filename:
-                a["filename"] = _filename
-            if _encoding == 'base64':
-                if _charset:
-                    a['decoded'] =  base64.b64decode(content).decode(_charset)
-                else:
-                    a['decoded'] =  base64.b64decode(content)
-            res.append(a)
-            _count += 1
-        else:
-            l += 1
-    return res
+def decode_plain(body, quoted=True):
+    if quoted:
+        body = quopri.decodestring(body)
+    urls = re.findall('http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+', body)
+    if len(urls) > 0:
+        print("Urls:")
+        for u in set(urls):
+            print(u)
+    else:
+        print("No urls identified")
 
 
 if __name__ == '__main__':
@@ -74,7 +45,6 @@ if __name__ == '__main__':
     parser.add_argument('EMAIL', help='EML file')
     parser.add_argument('--dump', '-D', action='store_true', help='Dump attachments')
     parser.add_argument('--show', '-s', type=int, help='Show one object')
-    parser.add_argument('--verbose', '-v', action='store_true', help='Verbose mode')
     args = parser.parse_args()
 
 
@@ -82,49 +52,46 @@ if __name__ == '__main__':
         print("Invalid file path")
         sys.exit(1)
 
-    ff = open(args.EMAIL, 'r')
-    res = parse_eml(ff.read())
+    with open(args.EMAIL, 'rb') as ff:
+        raw_email = ff.read()
 
-    if args.dump:
-        _count = 0
-        if len([r for r in res if r['attachment']]) == 0:
-            print("No attachments in this email")
-        else:
-            for r in res:
-                if r['attachment']:
-                    with open('attachment{}'.format(_count), 'wb+') as f:
-                        f.write(r['decoded'])
-                    print("Attachment {} ({}) written in attachment{}".format(_count, r['filename'], _count))
-                _count += 1
-    elif args.show is not None:
-        if args.show > len(res) -1:
-            print("This object does not exist")
-        else:
-            r = res[args.show]
-            print("Type: {}".format(r['type']))
-            print("id: {}".format(r['id']))
+    msg = email.message_from_bytes(raw_email)
 
-            if r['attachment']:
-                print("Attachment named {}".format(r['filename']))
-                print("{} bytes".format(len(r['decoded'])))
-            else:
-                if 'decoded' in r:
-                    print(r['decoded'])
-                else:
-                    print(r['content'])
+    print("==== Headers")
+    print("From: {}".format(msg['From']))
+    print("To: {}".format(msg['To']))
+    if msg['Subject'].startswith("=?"):
+        h = decode_header(msg['Subject'])
+        print("Subject: {}".format(h[0][0].decode(h[0][1])))
     else:
-        for r in res:
-            if r['type'] == 'multipart/alternative':
-                continue
+        print("Subject: {}".format(msg['Subject']))
+    print("Date: {}".format(msg["Date"]))
+    if msg["Reply(To"]:
+        print("Reply-To: {}".format(msg["Reply-To"]))
+    if msg.is_multipart():
+        print("Multipart Email")
+    print("")
+    if msg.is_multipart():
+        for p in msg.get_payload():
+            print("==== Part")
+            print("Type: {}".format(p.get_content_type()))
+            if p.get_content_type() == "text/plain":
+                content = p.get_payload(decode=True).decode(p.get_content_charset())
+                decode_plain(content, quoted=False)
+            elif p.get_content_type() == "text/html":
+                content = p.get_payload(decode=True)
+                decode_html(content)
             else:
-                print('-----------------------------------------------')
-                if r['attachment']:
-                    print('{} - Attachment {}'.format(r['count'], r['filename']))
-                    print('{} bytes'.format(len(r['decoded'])))
-                else:
-                    print('{} - {}'.format(r['count'], r['type']))
-                    if 'decoded' in r:
-                        print(r['decoded'])
-                    else:
-                        print(r['content'])
-                print()
+                # TODO : attached files
+                print("Content type not analyzed")
+            print("")
+    else:
+        body = msg.get_payload()
+        ptype = msg["Content-Type"]
+        if "text/html" in ptype:
+            decode_html(body)
+        elif "text/plain" in ptype:
+            decode_plain(body)
+
+
+
