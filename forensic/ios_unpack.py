@@ -39,15 +39,16 @@ if __name__ == "__main__":
         # Test if file exists
         infile = os.path.join(args.INPUT_FOLDER, row[0][0:2], row[0])
         if os.path.isfile(infile):
-            if "/" in row[2]:
-                # Make directories
-                dirpath = os.path.join(args.OUTPUT_FOLDER, os.path.dirname(row[2]))
-                if not os.path.isdir(dirpath):
-                    os.makedirs(dirpath)
-            copyfile(infile, os.path.join(args.OUTPUT_FOLDER, row[2]))
-            copied += 1
-            if args.verbose:
-                print("Copied {} to {}".format(row[0], row[2]))
+            if row[2]:
+                if "/" in row[2]:
+                    # Make directories
+                    dirpath = os.path.join(args.OUTPUT_FOLDER, os.path.dirname(row[2]))
+                    if not os.path.isdir(dirpath):
+                        os.makedirs(dirpath)
+                copyfile(infile, os.path.join(args.OUTPUT_FOLDER, row[2]))
+                copied += 1
+                if args.verbose:
+                    print("Copied {} to {}".format(row[0], row[2]))
         else:
             if args.verbose:
                 print("File {} not found".format(row[0]))
