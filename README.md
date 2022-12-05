@@ -24,6 +24,7 @@ Feel free to open [issues](https://github.com/Te-k/analyst-scripts/issues) if yo
     * `bitly.py` : basic tool to request the bit.ly API
 * [censys](censys/) : scripts using the censys.io API
     * `censyscerts.py` : Search for certificates
+    * `censyscompare.py` : Compare several Censys hosts
     * `censysip.py` : Search in censys IP database
     * `censysipentries.py` : Display information on an IPv4
     * `censyslib.py`  a file to reuse the function to get the API key from `~/.censys`
@@ -55,4 +56,3 @@ Feel free to open [issues](https://github.com/Te-k/analyst-scripts/issues) if yo
 * [twilio](twilio/) : scripts related to [Twilio](https://www.twilio.com/)
 * [twitter](twitter/) : Twitter stuff
 * [visualization](visualization/) : nice graphs everywhere
-* [vt](vt/) : scripts related to Virus Total
