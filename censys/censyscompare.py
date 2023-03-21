@@ -1,5 +1,6 @@
 import sys
 import argparse
+from datetime import datetime
 from censys.search import CensysHosts
 
 
@@ -71,18 +72,39 @@ if __name__ == "__main__":
     parser.add_argument(
         '--all', '-a', action="store_false",
         help="Check all fields available")
+    parser.add_argument('--verbose', '-v', action="store_true", help="verbose mode")
+    parser.add_argument('--date', '-d', help="date of the check in RFC3339 timestamp (2021-03-01T17:49:05Z)")
     args = parser.parse_args()
 
     h = CensysHosts()
     if len(args.HOST) < 2:
         print("Need more HOSTS")
         sys.exit(-1)
-    first = h.view(args.HOST.pop())
+
+    if args.date:
+        try:
+            datetime.strptime(args.date, "%Y-%m-%dT%H:%M:%SZ")
+        except ValueError:
+            print("Invalid date format, it should be in RFC3339 timestamp format : 2021-03-01T17:49:05Z")
+            sys.exit(1)
+
+    first_ip = args.HOST.pop()
+    if args.date:
+        first = h.view(first_ip, at_time=args.date)
+    else:
+        first = h.view(first_ip)
     intersect = convert_host_data(first, f=args.all)
+    print("Host {} : {} entries".format(first_ip, len(intersect)))
     for host in args.HOST:
-        hdata = h.view(host)
+        if args.date:
+            hdata = h.view(host, at_time=args.date)
+        else:
+            hdata = h.view(host)
         hdatad = convert_host_data(hdata, f=args.all)
+        print("Host {} : {} entries".format(host, len(hdatad)))
         intersect = set(intersect).intersection(hdatad)
+
+    print("Intersect data: {}".format(len(intersect)))
 
     for port in sorted(set([a[0] for a in intersect])):
         print("------------------ {}".format(port))

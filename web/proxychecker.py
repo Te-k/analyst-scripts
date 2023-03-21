@@ -60,7 +60,7 @@ if __name__ == '__main__':
                 try:
                     p = proxy.split(':')
                     port = int(p[1])
-                except ValueError, IndexError:
+                except (ValueError, IndexError):
                     print('%s - Invalid Value' % proxy)
                     continue
                 if test_proxy(p[0].strip(), port):
