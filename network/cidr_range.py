@@ -6,6 +6,6 @@ if __name__ == "__main__":
     parser.add_argument("IPRANGE", help="IP range")
     args = parser.parse_args()
 
-    l = list(ipaddress.ip_network(args.IPRANGE))
+    l = list(ipaddress.ip_network(args.IPRANGE, False))
     print(l[0])
     print(l[-1])
