@@ -1,6 +1,7 @@
 # HTTP Tests
 
 Bunch of random scripts to tests stuff on web servers :
+* `check_fastest_cache_version.py`: check if the Wordpress plugin WP Fastest cache is installed and up-to-date
 * `check_fun_files.py` : test if a list of files exist on the server (python2/3, minimal imports)
     * `fun_files.txt` : handmade list of interesting files (used by default, quite limited ~20 tests)
     * `phishingkits.txt` : list of phishing kit names imported from https://github.com/0xd34db33f/scriptsaw/blob/master/ruby/phish_kit_finder.rb
