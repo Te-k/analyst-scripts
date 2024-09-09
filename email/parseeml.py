@@ -31,7 +31,10 @@ def decode_html(body, quoted=True):
 def decode_plain(body, quoted=True):
     if quoted:
         body = quopri.decodestring(body)
-    urls = re.findall('http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+', body)
+    urls = re.findall(
+        "http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+",
+        body,
+    )
     if len(urls) > 0:
         print("Urls:")
         for u in set(urls):
@@ -40,31 +43,32 @@ def decode_plain(body, quoted=True):
         print("No urls identified")
 
 
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Extract attached files from an eml file')
-    parser.add_argument('EMAIL', help='EML file')
-    parser.add_argument('--dump', '-D', action='store_true', help='Dump attachments')
-    parser.add_argument('--show', '-s', type=int, help='Show one object')
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(
+        description="Extract attached files from an eml file"
+    )
+    parser.add_argument("EMAIL", help="EML file")
+    parser.add_argument("--dump", "-D", help="Dump attachments in the given folder")
+    parser.add_argument("--show", "-s", type=int, help="Show one object")
     args = parser.parse_args()
-
 
     if not os.path.isfile(args.EMAIL):
         print("Invalid file path")
         sys.exit(1)
 
-    with open(args.EMAIL, 'rb') as ff:
+    with open(args.EMAIL, "rb") as ff:
         raw_email = ff.read()
 
     msg = email.message_from_bytes(raw_email)
 
     print("==== Headers")
-    print("From: {}".format(msg['From']))
-    print("To: {}".format(msg['To']))
-    if msg['Subject'].startswith("=?"):
-        h = decode_header(msg['Subject'])
+    print("From: {}".format(msg["From"]))
+    print("To: {}".format(msg["To"]))
+    if msg["Subject"].startswith("=?"):
+        h = decode_header(msg["Subject"])
         print("Subject: {}".format(h[0][0].decode(h[0][1])))
     else:
-        print("Subject: {}".format(msg['Subject']))
+        print("Subject: {}".format(msg["Subject"]))
     print("Date: {}".format(msg["Date"]))
     if msg["Reply(To"]:
         print("Reply-To: {}".format(msg["Reply-To"]))
@@ -75,6 +79,9 @@ if __name__ == '__main__':
         for p in msg.get_payload():
             print("==== Part")
             print("Type: {}".format(p.get_content_type()))
+            if p.get_filename():
+                print("Name: {}".format(p.get_filename()))
+            print("Length: {} bytes".format(len(p.get_payload(decode=True))))
             if p.get_content_type() == "text/plain":
                 content = p.get_payload(decode=True).decode(p.get_content_charset())
                 decode_plain(content, quoted=False)
@@ -82,8 +89,17 @@ if __name__ == '__main__':
                 content = p.get_payload(decode=True)
                 decode_html(content)
             else:
-                # TODO : attached files
                 print("Content type not analyzed")
+            if args.dump:
+                if not os.path.isdir(args.dump):
+                    os.mkdir(args.dump)
+                if p.get_filename() is None:
+                    filename = "default_" + p.get_content_type().replace("/", "_")
+                else:
+                    filename = p.get_filename()
+                with open(os.path.join(args.dump, filename), "wb+") as f:
+                    f.write(p.get_payload(decode=True))
+                print("File dumped in {}".format(filename))
             print("")
     else:
         body = msg.get_payload()
@@ -92,6 +108,3 @@ if __name__ == '__main__':
             decode_html(body)
         elif "text/plain" in ptype:
             decode_plain(body)
-
-
-
