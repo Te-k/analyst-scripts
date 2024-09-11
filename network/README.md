@@ -8,5 +8,6 @@
 * `extract_iocs.py` : extract potential network indicators from a PCAP file using tshark
 * `dns_resolve.py` : resolve domains, results in a CSV file
 * `dns_resolve_mx.py` : resolve MX entries from a list of domains
+* `domains_timeline.py`: makes a timeline of domains registration based on Whois data
 * `list_mullvad_ips.py`: list IPs of mullvad servers
 * `test_website.py` : check a domain list and remove those not having a valid website
