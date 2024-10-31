@@ -48,24 +48,28 @@ class OoniRepository(object):
         if "test_keys" in data:
             if "queries" in data["test_keys"]:
                 for q in data["test_keys"]["queries"]:
-                    for a in q["answers"]:
-                        if a["answer_type"] == "A":
-                            res.add(a["ipv4"])
+                    if q.get("answers", None) is not None:
+                        for a in q.get("answers", []):
+                            if a["answer_type"] == "A":
+                                res.add(a["ipv4"])
         return list(res)
 
     def extract_dns_server(self, data):
         """
         Extract the DNS server used by the query
         """
-        if "test_keys" in data:
-            if "client_resolver" in data["test_keys"]:
-                return data["test_keys"]["client_resolver"]
-        return ""
+        return data["resolver_ip"], data["resolver_asn"]
+        #if "test_keys" in data:
+            #if "client_resolver" in data["test_keys"]:
+                #return data["test_keys"]["client_resolver"]
+        return "", ""
 
     def extract_tcp_status(self, data):
         """
         return TCP status info
         """
+        if data['test_keys']['tcp_connect'] is None:
+            return ""
         return data['test_keys']['tcp_connect'][0]['status'].get('success')
 
     def extract_http_status(self, data):
@@ -73,7 +77,7 @@ class OoniRepository(object):
         Return HTTP status
         """
         if "test_keys" in data:
-            if "requests" in data["test_keys"]:
+            if data["test_keys"].get("requests", None) is not None:
                 if len(data['test_keys']['requests']) > 0:
                     if "failure" in data['test_keys']['requests'][0]:
                         if data['test_keys']['requests'][0]['failure'] is not None:
@@ -143,19 +147,20 @@ if __name__ == "__main__":
         print("%s%s# %s%s" % (fg('white'), bg('yellow'), asn.upper(), attr(0)))
         for r in sorted(asns[asn], key=lambda x: x['measurement_start_time']):
             data = ooni.download_file(r['measurement_url'])
-            dns_server = ooni.extract_dns_server(data)
+            dns_resolver, dns_network = ooni.extract_dns_server(data)
             ips = ooni.extract_dns_answer(data)
             tcp = ooni.extract_tcp_status(data)
             http = ooni.extract_http_status(data)
             colors = {'Yes': 'red', 'No': 'green', 'None': 249}
-            print("%s\t %sAnomaly: %s\t%sConfirmed: %s%s | DNS: %s | IP: %s | TCP : %s | HTTP %s %s" % (
+            print("%s\t %sAnomaly: %s\t%sConfirmed: %s%s | DNS: %s (%s) | IP: %s | TCP : %s | HTTP %s %s" % (
                     r['measurement_start_time'],
                     fg(colors['Yes']) if r["anomaly"] else fg(colors['No']),
                     'Yes' if r["anomaly"] else "No",
                     fg('red') if r["confirmed"] else fg('green'),
                     "Yes" if r["confirmed"] else "No",
                     attr(0),
-                    dns_server,
+                    dns_resolver,
+                    dns_network,
                     ",".join(ips),
                     "Success" if tcp else "Failed",
                     "Failed" if http[0] else "Success",
