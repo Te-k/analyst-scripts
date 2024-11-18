@@ -152,7 +152,7 @@ if __name__ == "__main__":
             tcp = ooni.extract_tcp_status(data)
             http = ooni.extract_http_status(data)
             colors = {'Yes': 'red', 'No': 'green', 'None': 249}
-            print("%s\t %sAnomaly: %s\t%sConfirmed: %s%s | DNS: %s (%s) | IP: %s | TCP : %s | HTTP %s %s" % (
+            print("{}\t {}Anomaly: {}\t{}Confirmed: {}{} | DNS: {} ({}) | IP: {} | TCP : {} | HTTP {} {} | https://explorer.ooni.org/m/{}".format(
                     r['measurement_start_time'],
                     fg(colors['Yes']) if r["anomaly"] else fg(colors['No']),
                     'Yes' if r["anomaly"] else "No",
@@ -164,7 +164,8 @@ if __name__ == "__main__":
                     ",".join(ips),
                     "Success" if tcp else "Failed",
                     "Failed" if http[0] else "Success",
-                    http[1]
+                    http[1],
+                    r['measurement_uid']
                     )
             )
             # Sleep to avoid overloading OONI API
