@@ -18,8 +18,7 @@ if __name__ == "__main__":
         print("Invalid input folder")
         sys.exit(-1)
     if not os.path.isdir(args.OUTPUT_FOLDER):
-        print("Invalid output folder")
-        sys.exit(-1)
+        os.mkdir(args.OUTPUT_FOLDER)
 
     # Check if there is the Manifest.db file
     manifest = os.path.join(args.INPUT_FOLDER, "Manifest.db")
@@ -38,17 +37,17 @@ if __name__ == "__main__":
     for row in c.execute('select * from Files'):
         # Test if file exists
         infile = os.path.join(args.INPUT_FOLDER, row[0][0:2], row[0])
+        outfile = os.path.join(args.OUTPUT_FOLDER, row[1], row[2])
         if os.path.isfile(infile):
             if row[2]:
-                if "/" in row[2]:
-                    # Make directories
-                    dirpath = os.path.join(args.OUTPUT_FOLDER, os.path.dirname(row[2]))
-                    if not os.path.isdir(dirpath):
-                        os.makedirs(dirpath)
-                copyfile(infile, os.path.join(args.OUTPUT_FOLDER, row[2]))
+                # Make directories
+                dirpath = os.path.join(args.OUTPUT_FOLDER, row[1], os.path.dirname(row[2]))
+                if not os.path.isdir(dirpath):
+                    os.makedirs(dirpath)
+                copyfile(infile, outfile)
                 copied += 1
                 if args.verbose:
-                    print("Copied {} to {}".format(row[0], row[2]))
+                    print("Copied {} to {}".format(row[0], outfile))
         else:
             if args.verbose:
                 print("File {} not found".format(row[0]))

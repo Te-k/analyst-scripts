@@ -5,6 +5,10 @@ Two scripts here to help creating timeline on Linux live systems :
 * `mactime.py` : convert this list of files into a csv timeline
 
 Misc :
-* `extract_chrome_history.py`: extract history from a Chrome History SQlite file
+* `extract_chrome_history.py`: extract history from a Chrome History Sqlite file
+
+    * On Windows, stored in `C:\Users\<username>\AppData\Local\Google\Chrome\User Data\Default`
+    * On Mac OS, stored in `/Users/<username>/Library/Application Support/Google/Chrome/Default`
+    * On Linux, stored in `/home/<username>/.config/google-chrome/Default`
 * `ios_unpack.py` : unpack iOS backup folder from iTunes or [libimobiledevice](https://www.libimobiledevice.org/)
 
