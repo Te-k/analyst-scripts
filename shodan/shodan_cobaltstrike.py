@@ -3,9 +3,6 @@ import shodan
 import argparse
 import os
 import sys
-import json
-from dateutil.parser import parse
-from datetime import datetime, timedelta
 
 
 if __name__ == '__main__':
@@ -27,11 +24,7 @@ if __name__ == '__main__':
 
 
     api = shodan.Shodan(key)
-    try:
-        # Cobalt Strike JARM signature
-        res = api.search("ssl.jarm:07d14d16d21d21d07c42d41d00041d24a458a375eef0c576d23a7bab9a9fb1")
-    except shodan.exception.APIError:
-        print("IP not found in Shodan")
-    else:
-        for ip in res['matches']:
-            print(ip['ip_str'])
+    # Cobalt Strike JARM signature
+    res = api.search("ssl.jarm:07d14d16d21d21d07c42d41d00041d24a458a375eef0c576d23a7bab9a9fb1")
+    for ip in res['matches']:
+        print(ip['ip_str'])
