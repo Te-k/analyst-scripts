@@ -5,6 +5,8 @@ Two scripts here to help creating timeline on Linux live systems :
 * `mactime.py` : convert this list of files into a csv timeline
 
 Misc :
+* `DeXRAY.pl` is an archive of the fascinating [Dexray](https://www.hexacorn.com/blog/2023/10/13/dexray-v2-33/) from Hexacorn in case it disappears.
+* `defender_mac_unquarantine.py`: decrypt a filed quarantined by Defender for Mac OS.
 * `extract_chrome_history.py`: extract history from a Chrome History Sqlite file
 
     * On Windows, stored in `C:\Users\<username>\AppData\Local\Google\Chrome\User Data\Default`
